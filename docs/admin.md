@@ -1,7 +1,27 @@
 # Admin API Endpoints
 
+## Authentication
+**POST /admin/auth/login**
+```json
+Request:
+{
+  "email": "admin@gmail.com",
+  "password": "admin123"
+}
+
+Response:
+{
+  "access_token": "jwt_admin_token",
+  "token_type": "bearer",
+  "expires_in": 3600
+}
+```
+
+*Note: All admin endpoints require Bearer token authentication in the Authorization header.*
+
 ## User Management
-**GET /admin/users**
+**GET /admin/users** 
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Response:
 [
@@ -18,6 +38,7 @@ Response:
 ```
 
 **GET /admin/users/{user_id}**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Response:
 {
@@ -47,6 +68,7 @@ Response:
 ```
 
 **DELETE /admin/users/{user_id}**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Response:
 {
@@ -56,6 +78,7 @@ Response:
 
 ## Lesson Management
 **GET /admin/lessons**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Response:
 [
@@ -76,6 +99,7 @@ Response:
 ```
 
 **POST /admin/lessons**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Request:
 {
@@ -101,6 +125,7 @@ Response:
 ```
 
 **PUT /admin/lessons/{lesson_id}**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Request:
 {
@@ -125,6 +150,7 @@ Response:
 ```
 
 **DELETE /admin/lessons/{lesson_id}**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Response:
 {
@@ -133,6 +159,7 @@ Response:
 ```
 
 **PUT /admin/lessons/{lesson_id}/publish**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Request:
 {
@@ -150,6 +177,7 @@ Response:
 
 ## Question Management
 **GET /admin/lessons/{lesson_id}/questions**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Response:
 [
@@ -164,6 +192,7 @@ Response:
 ```
 
 **POST /admin/lessons/{lesson_id}/questions**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Request:
 {
@@ -183,6 +212,7 @@ Response:
 ```
 
 **PUT /admin/questions/{question_id}**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Request:
 {
@@ -202,6 +232,7 @@ Response:
 ```
 
 **DELETE /admin/questions/{question_id}**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Response:
 {
@@ -211,6 +242,7 @@ Response:
 
 ## Analytics & Reports
 **GET /admin/lessons/{lesson_id}/analytics**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Response:
 {
@@ -232,6 +264,7 @@ Response:
 ```
 
 **GET /admin/lessons/{lesson_id}/results**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Response:
 [
@@ -249,6 +282,7 @@ Response:
 ```
 
 **GET /admin/dashboard**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Response:
 {
@@ -286,6 +320,7 @@ Response:
 
 ## Access Management
 **GET /admin/access/all**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Response:
 [
@@ -303,6 +338,7 @@ Response:
 ```
 
 **POST /admin/access/grant**
+*Headers: Authorization: Bearer {admin_token}*
 ```json
 Request:
 {
