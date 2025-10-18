@@ -10,7 +10,7 @@ bcrypt==4.1.2
 python-dotenv==1.0.0
 pydantic==2.5.0
 requests==2.31.0
-pillow==10.1.0
+pillow==10.4.0
 greenlet==3.0.1
 redis==5.0.1
 apscheduler==3.10.4
