@@ -7,7 +7,6 @@ from sqlalchemy.orm import relationship
 import uuid
 from app.core.database import Base
 
-
 class UserLessonAccessDB(Base):
     __tablename__ = "user_lesson_access"
     

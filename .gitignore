@@ -1,2 +1,4 @@
 .env
 key.json
+.venv
+.claude
