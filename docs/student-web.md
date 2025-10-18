@@ -1,59 +1,23 @@
-# Student API Endpoints
+# Student Web/Mobile API Endpoints
 
-## Authentication
-**POST /auth/register**
-```json
-Request:
-{
-  "full_name": "string",
-  "telegram_id": 123456789,
-  "phone_number": "+998901234567"
-}
-
-Response:
-{
-  "id": "uuid",
-  "full_name": "string",
-  "telegram_id": 123456789,
-  "phone_number": "+998901234567",
-  "joined_at": "2024-01-01T00:00:00Z",
-  "access_token": "jwt_token"
-}
-```
-
-**POST /auth/login**
-```json
-Request:
-{
-  "telegram_id": 123456789
-}
-
-Response:
-{
-  "access_token": "jwt_token",
-  "user": {
-    "id": "uuid",
-    "full_name": "string",
-    "telegram_id": 123456789,
-    "phone_number": "+998901234567"
-  }
-}
-```
+*Note: All endpoints require Bearer token authentication in Authorization header.*
 
 ## Profile Management
 **GET /users/profile**
+*Headers: Authorization: Bearer {token}*
 ```json
 Response:
 {
   "id": "uuid",
   "full_name": "string",
   "telegram_id": 123456789,
-  "phone_number": "+998901234567",
+  "phone_number": "+998901234567"
   "joined_at": "2024-01-01T00:00:00Z"
 }
 ```
 
 **PUT /users/profile**
+*Headers: Authorization: Bearer {token}*
 ```json
 Request:
 {
@@ -73,6 +37,7 @@ Response:
 
 ## Lessons
 **GET /lessons**
+*Headers: Authorization: Bearer {token}*
 ```json
 Response:
 [
@@ -80,16 +45,16 @@ Response:
     "id": "uuid",
     "title": "string",
     "description": "string",
-    "video_url": "string",
-    "pdf_url": "string",
-    "ppt_url": "string",
-    "is_published": true,
-    "created_at": "2024-01-01T00:00:00Z"
+    "has_access": true,
+    "test_completed": false,
+    "score": null,
+    "price": 50000
   }
 ]
 ```
 
 **GET /lessons/{lesson_id}**
+*Headers: Authorization: Bearer {token}*
 ```json
 Response:
 {
@@ -99,13 +64,15 @@ Response:
   "video_url": "string",
   "pdf_url": "string",
   "ppt_url": "string",
-  "is_published": true,
-  "created_at": "2024-01-01T00:00:00Z"
+  "has_access": true,
+  "test_completed": false,
+  "score": null
 }
 ```
 
 ## Lesson Access
 **GET /access/lessons**
+*Headers: Authorization: Bearer {token}*
 ```json
 Response:
 [
@@ -123,26 +90,8 @@ Response:
 ]
 ```
 
-**POST /access/lessons/{lesson_id}**
-```json
-Request:
-{
-  "amount": 50000
-}
-
-Response:
-{
-  "id": "uuid",
-  "user_id": "uuid",
-  "lesson_id": "uuid",
-  "is_unlocked": true,
-  "unlocked_at": "2024-01-01T00:00:00Z",
-  "amount": 50000,
-  "paid_at": "2024-01-01T00:00:00Z"
-}
-```
-
 **GET /access/lessons/{lesson_id}**
+*Headers: Authorization: Bearer {token}*
 ```json
 Response:
 {
@@ -158,12 +107,12 @@ Response:
 
 ## Tests
 **GET /lessons/{lesson_id}/questions**
+*Headers: Authorization: Bearer {token}*
 ```json
 Response:
 [
   {
     "id": "uuid",
-    "lesson_id": "uuid",
     "question_text": "string",
     "options": ["option1", "option2", "option3", "option4"]
   }
@@ -171,6 +120,7 @@ Response:
 ```
 
 **POST /lessons/{lesson_id}/test**
+*Headers: Authorization: Bearer {token}*
 ```json
 Request:
 {
@@ -185,24 +135,16 @@ Request:
 Response:
 {
   "id": "uuid",
-  "user_id": "uuid",
-  "lesson_id": "uuid",
   "score": 85,
   "total_questions": 10,
-  "answers": [
-    {
-      "question": "string",
-      "user_selected": "string",
-      "correct": "string"
-    }
-  ],
-  "started_at": "2024-01-01T00:00:00Z",
-  "ended_at": "2024-01-01T00:00:00Z"
+  "passed": true,
+  "message": "Congratulations! You scored 85%"
 }
 ```
 
 ## Test Results
 **GET /results**
+*Headers: Authorization: Bearer {token}*
 ```json
 Response:
 [
@@ -219,6 +161,7 @@ Response:
 ```
 
 **GET /results/{result_id}**
+*Headers: Authorization: Bearer {token}*
 ```json
 Response:
 {
