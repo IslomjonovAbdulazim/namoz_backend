@@ -14,17 +14,37 @@ class GoogleCloudStorage:
     
     def _initialize_client(self):
         try:
-            if os.path.exists(settings.GOOGLE_CLOUD_KEY_FILE):
-                credentials = service_account.Credentials.from_service_account_file(
-                    settings.GOOGLE_CLOUD_KEY_FILE
-                )
+            # Check if all required environment variables are present
+            if all([
+                settings.GOOGLE_CLOUD_PROJECT,
+                settings.GOOGLE_CLOUD_PRIVATE_KEY,
+                settings.GOOGLE_CLOUD_CLIENT_EMAIL,
+                settings.GOOGLE_CLOUD_BUCKET
+            ]):
+                # Create credentials from environment variables
+                credentials_info = {
+                    "type": "service_account",
+                    "project_id": settings.GOOGLE_CLOUD_PROJECT,
+                    "private_key_id": settings.GOOGLE_CLOUD_PRIVATE_KEY_ID,
+                    "private_key": settings.GOOGLE_CLOUD_PRIVATE_KEY.replace('\\n', '\n'),
+                    "client_email": settings.GOOGLE_CLOUD_CLIENT_EMAIL,
+                    "client_id": settings.GOOGLE_CLOUD_CLIENT_ID,
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                    "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{settings.GOOGLE_CLOUD_CLIENT_EMAIL.replace('@', '%40')}",
+                    "universe_domain": "googleapis.com"
+                }
+                
+                credentials = service_account.Credentials.from_service_account_info(credentials_info)
                 self.client = storage.Client(
                     credentials=credentials, 
                     project=settings.GOOGLE_CLOUD_PROJECT
                 )
                 self.bucket = self.client.bucket(settings.GOOGLE_CLOUD_BUCKET)
+                print("Google Cloud Storage initialized successfully from environment variables.")
             else:
-                print(f"Warning: Google Cloud key file '{settings.GOOGLE_CLOUD_KEY_FILE}' not found. Storage functionality will be disabled.")
+                print("Warning: Google Cloud credentials not found in environment variables. Storage functionality will be disabled.")
         except Exception as e:
             print(f"Warning: Failed to initialize Google Cloud Storage: {str(e)}")
     

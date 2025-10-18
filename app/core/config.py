@@ -12,6 +12,9 @@ class Settings:
     JWT_EXPIRE_HOURS: int = int(os.getenv("JWT_EXPIRE_HOURS", "24"))
     GOOGLE_CLOUD_PROJECT: str = os.getenv("GOOGLE_CLOUD_PROJECT")
     GOOGLE_CLOUD_BUCKET: str = os.getenv("GOOGLE_CLOUD_BUCKET")
-    GOOGLE_CLOUD_KEY_FILE: str = "key.json"
+    GOOGLE_CLOUD_PRIVATE_KEY: str = os.getenv("GOOGLE_CLOUD_PRIVATE_KEY")
+    GOOGLE_CLOUD_CLIENT_EMAIL: str = os.getenv("GOOGLE_CLOUD_CLIENT_EMAIL")
+    GOOGLE_CLOUD_PRIVATE_KEY_ID: str = os.getenv("GOOGLE_CLOUD_PRIVATE_KEY_ID")
+    GOOGLE_CLOUD_CLIENT_ID: str = os.getenv("GOOGLE_CLOUD_CLIENT_ID")
 
 settings = Settings()

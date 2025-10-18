@@ -5,7 +5,7 @@ This document describes the complete Admin API for the Namoz Education Platform.
 
 ## Base URL
 ```
-https://api.nomoz.uz
+https://namozbackend-production.up.railway.app
 ```
 
 ## Authentication
@@ -622,34 +622,34 @@ Authorization: Bearer <jwt_token>
 ### Complete lesson creation workflow:
 ```bash
 # 1. Login
-curl -X POST https://api.nomoz.uz/admin/auth/login \
+curl -X POST https://namozbackend-production.up.railway.app/admin/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@gmail.com","password":"admin123"}'
 
 # 2. Create lesson
-curl -X POST https://api.nomoz.uz/admin/lessons \
+curl -X POST https://namozbackend-production.up.railway.app/admin/lessons \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"title":"New Course","description":"Course description","video_url":"https://youtube.com/watch?v=abc"}'
 
 # 3. Upload PDF
-curl -X POST https://api.nomoz.uz/admin/lessons/{lesson_id}/upload/pdf \
+curl -X POST https://namozbackend-production.up.railway.app/admin/lessons/{lesson_id}/upload/pdf \
   -H "Authorization: Bearer <token>" \
   -F "file=@course.pdf"
 
 # 4. Upload PPT
-curl -X POST https://api.nomoz.uz/admin/lessons/{lesson_id}/upload/ppt \
+curl -X POST https://namozbackend-production.up.railway.app/admin/lessons/{lesson_id}/upload/ppt \
   -H "Authorization: Bearer <token>" \
   -F "file=@slides.pptx"
 
 # 5. Add questions
-curl -X POST https://api.nomoz.uz/admin/lessons/{lesson_id}/questions \
+curl -X POST https://namozbackend-production.up.railway.app/admin/lessons/{lesson_id}/questions \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"question_text":"What is Python?","options":["Language","Snake","Tool","IDE"],"correct_option":0}'
 
 # 6. Publish lesson
-curl -X PUT https://api.nomoz.uz/admin/lessons/{lesson_id}/publish \
+curl -X PUT https://namozbackend-production.up.railway.app/admin/lessons/{lesson_id}/publish \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"is_published":true}'
