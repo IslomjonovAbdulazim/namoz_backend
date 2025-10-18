@@ -102,6 +102,7 @@ Request:
   "telegram_id": 123456789
 }
 
+        
 Response (if phone number exists):
 {
   "access_token": "jwt_token",
