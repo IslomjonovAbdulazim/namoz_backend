@@ -1,0 +1,658 @@
+# Namoz Education Platform - Admin API Documentation
+
+## Overview
+This document describes the complete Admin API for the Namoz Education Platform. All admin endpoints require JWT authentication via Bearer token. The API is built with FastAPI and uses PostgreSQL for data storage and Google Cloud Storage for file uploads.
+
+## Base URL
+```
+http://localhost:8000
+```
+
+## Authentication
+All admin endpoints (except login) require a Bearer token in the Authorization header:
+```
+Authorization: Bearer <jwt_token>
+```
+
+---
+
+## 1. AUTHENTICATION
+
+### POST /admin/auth/login
+**Description:** Authenticate admin user and receive JWT token
+**Authentication:** None required
+
+**Request Body:**
+```json
+{
+  "email": "admin@gmail.com",
+  "password": "admin123"
+}
+```
+
+**Response (200):**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer",
+  "expires_in": 3600
+}
+```
+
+**Response (401):**
+```json
+{
+  "detail": "Invalid admin credentials"
+}
+```
+
+---
+
+## 2. USER MANAGEMENT
+
+### GET /admin/users
+**Description:** Retrieve all users with their purchase statistics
+**Authentication:** Required
+
+**Request Body:** None
+
+**Response (200):**
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "full_name": "John Doe",
+    "telegram_id": 123456789,
+    "phone_number": "+998901234567",
+    "joined_at": "2024-01-01T00:00:00Z",
+    "total_lessons_purchased": 5,
+    "total_spent": 250000
+  }
+]
+```
+
+## 3. LESSON MANAGEMENT
+
+### GET /admin/lessons
+**Description:** Retrieve all lessons with analytics data
+**Authentication:** Required
+
+**Request Body:** None
+
+**Response (200):**
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "title": "Introduction to Python",
+    "description": "Learn Python basics from scratch",
+    "video_url": "https://youtube.com/watch?v=abc123",
+    "pdf_url": "https://storage.googleapis.com/bucket/pdfs/file.pdf",
+    "ppt_url": "https://storage.googleapis.com/bucket/presentations/file.pptx",
+    "is_published": true,
+    "created_at": "2024-01-01T00:00:00Z",
+    "total_users": 150,
+    "total_revenue": 7500000,
+    "average_score": 78.5
+  }
+]
+```
+
+### POST /admin/lessons
+**Description:** Create a new lesson (always starts as unpublished with empty file URLs)
+**Authentication:** Required
+
+**Request Body:**
+```json
+{
+  "title": "New Lesson Title",
+  "description": "Detailed lesson description",
+  "video_url": "https://youtube.com/watch?v=xyz789"
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "title": "New Lesson Title",
+  "description": "Detailed lesson description",
+  "video_url": "https://youtube.com/watch?v=xyz789",
+  "pdf_url": "",
+  "ppt_url": "",
+  "is_published": false,
+  "created_at": "2024-01-01T00:00:00Z"
+}
+```
+
+### PUT /admin/lessons/{lesson_id}
+**Description:** Update lesson details (title, description, video_url)
+**Authentication:** Required
+
+**Path Parameters:**
+- `lesson_id` (string): UUID of the lesson to update
+
+**Request Body:**
+```json
+{
+  "title": "Updated Title",
+  "description": "Updated description",
+  "video_url": "https://youtube.com/watch?v=updated"
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "title": "Updated Title",
+  "description": "Updated description",
+  "video_url": "https://youtube.com/watch?v=updated",
+  "pdf_url": "https://storage.googleapis.com/bucket/pdfs/file.pdf",
+  "ppt_url": "https://storage.googleapis.com/bucket/presentations/file.pptx",
+  "is_published": false,
+  "created_at": "2024-01-01T00:00:00Z"
+}
+```
+
+### DELETE /admin/lessons/{lesson_id}
+**Description:** Delete a lesson and all related data (questions, purchases, test results)
+**Authentication:** Required
+
+**Path Parameters:**
+- `lesson_id` (string): UUID of the lesson to delete
+
+**Request Body:** None
+
+**Response (200):**
+```json
+{
+  "message": "Lesson deleted successfully"
+}
+```
+
+### PUT /admin/lessons/{lesson_id}/publish
+**Description:** Publish or unpublish a lesson
+**Authentication:** Required
+
+**Path Parameters:**
+- `lesson_id` (string): UUID of the lesson
+
+**Request Body:**
+```json
+{
+  "is_published": true
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "title": "Lesson Title",
+  "is_published": true,
+  "updated_at": "2024-01-01T00:00:00Z"
+}
+```
+
+---
+
+## 4. FILE UPLOAD MANAGEMENT
+
+### POST /admin/lessons/{lesson_id}/upload/pdf
+**Description:** Upload PDF file for a specific lesson and update lesson's pdf_url
+**Authentication:** Required
+
+**Path Parameters:**
+- `lesson_id` (string): UUID of the lesson
+
+**Request Body:** 
+- Form data with file field
+- Content-Type: multipart/form-data
+- File must be PDF format
+- Maximum size: 50MB
+
+**Response (200):**
+```json
+{
+  "pdf_url": "https://storage.googleapis.com/bucket/pdfs/550e8400-e29b-41d4-a716-446655440003.pdf",
+  "lesson_id": "550e8400-e29b-41d4-a716-446655440002"
+}
+```
+
+**Response (400):**
+```json
+{
+  "detail": "Only PDF files are allowed"
+}
+```
+
+### POST /admin/lessons/{lesson_id}/upload/ppt
+**Description:** Upload PowerPoint file for a specific lesson and update lesson's ppt_url
+**Authentication:** Required
+
+**Path Parameters:**
+- `lesson_id` (string): UUID of the lesson
+
+**Request Body:** 
+- Form data with file field
+- Content-Type: multipart/form-data
+- File must be PPT or PPTX format
+- Maximum size: 50MB
+
+**Response (200):**
+```json
+{
+  "ppt_url": "https://storage.googleapis.com/bucket/presentations/550e8400-e29b-41d4-a716-446655440004.pptx",
+  "lesson_id": "550e8400-e29b-41d4-a716-446655440002"
+}
+```
+
+**Response (400):**
+```json
+{
+  "detail": "Only PPT/PPTX files are allowed"
+}
+```
+
+---
+
+## 5. QUESTION MANAGEMENT
+
+### GET /admin/lessons/{lesson_id}/questions
+**Description:** Get all questions for a specific lesson
+**Authentication:** Required
+
+**Path Parameters:**
+- `lesson_id` (string): UUID of the lesson
+
+**Request Body:** None
+
+**Response (200):**
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440005",
+    "lesson_id": "550e8400-e29b-41d4-a716-446655440002",
+    "question_text": "What is Python?",
+    "options": ["A programming language", "A snake", "A framework", "A database"],
+    "correct_option": 0
+  }
+]
+```
+
+### POST /admin/lessons/{lesson_id}/questions
+**Description:** Create a new question for a specific lesson
+**Authentication:** Required
+
+**Path Parameters:**
+- `lesson_id` (string): UUID of the lesson
+
+**Request Body:**
+```json
+{
+  "question_text": "What is the output of print('Hello World')?",
+  "options": ["Hello World", "Error", "Nothing", "Hello"],
+  "correct_option": 0
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440006",
+  "lesson_id": "550e8400-e29b-41d4-a716-446655440002",
+  "question_text": "What is the output of print('Hello World')?",
+  "options": ["Hello World", "Error", "Nothing", "Hello"],
+  "correct_option": 0
+}
+```
+
+**Response (400):**
+```json
+{
+  "detail": "correct_option must be within options range"
+}
+```
+
+### PUT /admin/questions/{question_id}
+**Description:** Update an existing question
+**Authentication:** Required
+
+**Path Parameters:**
+- `question_id` (string): UUID of the question
+
+**Request Body:**
+```json
+{
+  "question_text": "Updated question text?",
+  "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+  "correct_option": 1
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440006",
+  "lesson_id": "550e8400-e29b-41d4-a716-446655440002",
+  "question_text": "Updated question text?",
+  "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+  "correct_option": 1
+}
+```
+
+### DELETE /admin/questions/{question_id}
+**Description:** Delete a specific question
+**Authentication:** Required
+
+**Path Parameters:**
+- `question_id` (string): UUID of the question
+
+**Request Body:** None
+
+**Response (200):**
+```json
+{
+  "message": "Question deleted successfully"
+}
+```
+
+---
+
+## 6. ANALYTICS & REPORTS
+
+### GET /admin/dashboard
+**Description:** Get comprehensive dashboard statistics
+**Authentication:** Required
+
+**Request Body:** None
+
+**Response (200):**
+```json
+{
+  "total_users": 1250,
+  "total_lessons": 25,
+  "total_revenue": 62500000,
+  "monthly_revenue": 12500000,
+  "new_users_this_month": 150,
+  "most_popular_lessons": [
+    {
+      "lesson_id": "550e8400-e29b-41d4-a716-446655440001",
+      "title": "Python Basics",
+      "student_count": 350,
+      "revenue": 17500000
+    }
+  ],
+  "recent_activity": [
+    {
+      "type": "purchase",
+      "user_name": "John Doe",
+      "lesson_title": "Python Basics",
+      "amount": 50000,
+      "timestamp": "2024-01-01T00:00:00Z"
+    },
+    {
+      "type": "test_completion",
+      "user_name": "Jane Smith",
+      "lesson_title": "Python Advanced",
+      "score": 85,
+      "timestamp": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+### GET /admin/lessons/{lesson_id}/analytics
+**Description:** Get detailed analytics for a specific lesson
+**Authentication:** Required
+
+**Path Parameters:**
+- `lesson_id` (string): UUID of the lesson
+
+**Request Body:** None
+
+**Response (200):**
+```json
+{
+  "lesson_id": "550e8400-e29b-41d4-a716-446655440001",
+  "lesson_title": "Python Basics",
+  "total_students": 150,
+  "total_revenue": 7500000,
+  "average_score": 78.5,
+  "completion_rate": 85.2,
+  "recent_purchases": [
+    {
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
+      "user_name": "John Doe",
+      "amount": 50000,
+      "paid_at": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+### GET /admin/lessons/{lesson_id}/results
+**Description:** Get all test results for a specific lesson
+**Authentication:** Required
+
+**Path Parameters:**
+- `lesson_id` (string): UUID of the lesson
+
+**Request Body:** None
+
+**Response (200):**
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440007",
+    "user_id": "550e8400-e29b-41d4-a716-446655440000",
+    "user_name": "John Doe",
+    "score": 85,
+    "total_questions": 10,
+    "completion_time": "00:15:30",
+    "started_at": "2024-01-01T00:00:00Z",
+    "ended_at": "2024-01-01T00:15:30Z"
+  }
+]
+```
+
+---
+
+## 7. ACCESS MANAGEMENT
+
+### GET /admin/access/all
+**Description:** Get all user lesson access records
+**Authentication:** Required
+
+**Request Body:** None
+
+**Response (200):**
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440008",
+    "user_id": "550e8400-e29b-41d4-a716-446655440000",
+    "user_name": "John Doe",
+    "lesson_id": "550e8400-e29b-41d4-a716-446655440001",
+    "lesson_title": "Python Basics",
+    "amount": 50000,
+    "paid_at": "2024-01-01T00:00:00Z",
+    "notes": "Regular purchase"
+  }
+]
+```
+
+### POST /admin/access/grant
+**Description:** Manually grant access to a lesson for a user (typically for free access)
+**Authentication:** Required
+
+**Request Body:**
+```json
+{
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "lesson_id": "550e8400-e29b-41d4-a716-446655440001",
+  "amount": 0,
+  "notes": "Admin granted free access"
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440009",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "lesson_id": "550e8400-e29b-41d4-a716-446655440001",
+  "is_unlocked": true,
+  "unlocked_at": "2024-01-01T00:00:00Z",
+  "amount": 0,
+  "paid_at": "2024-01-01T00:00:00Z",
+  "notes": "Admin granted free access"
+}
+```
+
+**Response (400):**
+```json
+{
+  "detail": "User already has access to this lesson"
+}
+```
+
+**Response (404):**
+```json
+{
+  "detail": "User not found"
+}
+```
+
+---
+
+## Error Responses
+
+### Common Error Codes:
+- **400 Bad Request:** Invalid request data or validation errors
+- **401 Unauthorized:** Missing or invalid authentication token
+- **404 Not Found:** Resource not found
+- **422 Unprocessable Entity:** Request validation failed
+- **500 Internal Server Error:** Server-side error
+
+### Error Response Format:
+```json
+{
+  "detail": "Error message describing what went wrong"
+}
+```
+
+---
+
+## Data Models
+
+### User
+```json
+{
+  "id": "string (UUID)",
+  "full_name": "string",
+  "telegram_id": "integer",
+  "phone_number": "string",
+  "joined_at": "datetime (ISO 8601)"
+}
+```
+
+### Lesson
+```json
+{
+  "id": "string (UUID)",
+  "title": "string",
+  "description": "string",
+  "video_url": "string (URL)",
+  "pdf_url": "string (URL)",
+  "ppt_url": "string (URL)",
+  "is_published": "boolean",
+  "created_at": "datetime (ISO 8601)"
+}
+```
+
+### Question
+```json
+{
+  "id": "string (UUID)",
+  "lesson_id": "string (UUID)",
+  "question_text": "string",
+  "options": ["array of strings"],
+  "correct_option": "integer (0-based index)"
+}
+```
+
+### User Access
+```json
+{
+  "id": "string (UUID)",
+  "user_id": "string (UUID)",
+  "lesson_id": "string (UUID)",
+  "amount": "integer (amount in currency units)",
+  "is_unlocked": "boolean",
+  "unlocked_at": "datetime (ISO 8601)",
+  "paid_at": "datetime (ISO 8601)",
+  "notes": "string (optional)"
+}
+```
+
+---
+
+## Integration Notes
+
+1. **Authentication Flow:** Always call `/admin/auth/login` first to get JWT token, then include in all subsequent requests.
+
+2. **File Upload Flow:** Create lesson first, then upload PDF/PPT files separately using lesson ID.
+
+3. **Content Management Flow:** Create lesson → Upload files → Add questions → Publish lesson.
+
+4. **Error Handling:** All endpoints return consistent error format with descriptive messages.
+
+5. **Data Types:** All IDs are UUIDs, amounts are integers (smallest currency unit), dates are ISO 8601 format.
+
+6. **File Storage:** Files are stored in Google Cloud Storage and public URLs are returned.
+
+7. **Database:** PostgreSQL with proper indexing for performance. All operations are transactional.
+
+---
+
+## Example Usage
+
+### Complete lesson creation workflow:
+```bash
+# 1. Login
+curl -X POST http://localhost:8000/admin/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@gmail.com","password":"admin123"}'
+
+# 2. Create lesson
+curl -X POST http://localhost:8000/admin/lessons \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"New Course","description":"Course description","video_url":"https://youtube.com/watch?v=abc"}'
+
+# 3. Upload PDF
+curl -X POST http://localhost:8000/admin/lessons/{lesson_id}/upload/pdf \
+  -H "Authorization: Bearer <token>" \
+  -F "file=@course.pdf"
+
+# 4. Upload PPT
+curl -X POST http://localhost:8000/admin/lessons/{lesson_id}/upload/ppt \
+  -H "Authorization: Bearer <token>" \
+  -F "file=@slides.pptx"
+
+# 5. Add questions
+curl -X POST http://localhost:8000/admin/lessons/{lesson_id}/questions \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"question_text":"What is Python?","options":["Language","Snake","Tool","IDE"],"correct_option":0}'
+
+# 6. Publish lesson
+curl -X PUT http://localhost:8000/admin/lessons/{lesson_id}/publish \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"is_published":true}'
+```
+
+This API provides complete administrative control over the Namoz Education Platform with comprehensive analytics, user management, content management, and access control features.
