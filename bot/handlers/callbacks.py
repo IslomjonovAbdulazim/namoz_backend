@@ -1,6 +1,7 @@
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes
+from telegram.error import BadRequest
 from bot.services.user_service import UserService
 from bot.services.api_client import APIClient
 from bot.utils.texts import BotTexts
@@ -20,6 +21,30 @@ class CallbackHandler:
     def __init__(self, user_service: UserService):
         self.user_service = user_service
         self.api = user_service.api
+    
+    async def safe_edit_message(self, update: Update, text: str, reply_markup=None, parse_mode="Markdown"):
+        """Safely edit message, handling 'message not modified' errors"""
+        try:
+            if update.callback_query:
+                await self.safe_edit_message(update,
+                    text,
+                    reply_markup=reply_markup,
+                    parse_mode=parse_mode
+                )
+            else:
+                await update.message.reply_text(
+                    text,
+                    reply_markup=reply_markup,
+                    parse_mode=parse_mode
+                )
+        except BadRequest as e:
+            if "message is not modified" in str(e).lower():
+                # Message content is the same, just ignore
+                logger.debug(f"Message not modified - content is the same")
+                return
+            else:
+                # Other BadRequest errors should be raised
+                raise e
     
     async def handle_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Main callback handler"""
@@ -75,18 +100,7 @@ class CallbackHandler:
         user = update.effective_user
         welcome_text = BotTexts.WELCOME_REGISTERED.format(name=get_user_display_name(user))
         
-        if update.callback_query:
-            await update.callback_query.edit_message_text(
-                welcome_text,
-                reply_markup=get_main_menu_keyboard(),
-                parse_mode="Markdown"
-            )
-        else:
-            await update.message.reply_text(
-                welcome_text,
-                reply_markup=get_main_menu_keyboard(),
-                parse_mode="Markdown"
-            )
+        await self.safe_edit_message(update, welcome_text, get_main_menu_keyboard(), "Markdown")
     
     async def show_lessons(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Show lessons list"""
@@ -112,18 +126,7 @@ class CallbackHandler:
             
             keyboard = get_lessons_list_keyboard(lessons_data)
         
-        if update.callback_query:
-            await update.callback_query.edit_message_text(
-                text,
-                reply_markup=keyboard,
-                parse_mode="Markdown"
-            )
-        else:
-            await update.message.reply_text(
-                text,
-                reply_markup=keyboard,
-                parse_mode="Markdown"
-            )
+        await self.safe_edit_message(update, text, keyboard, "Markdown")
     
     async def show_lesson_detail(self, update: Update, context: ContextTypes.DEFAULT_TYPE, lesson_id: str):
         """Show lesson details"""
@@ -131,7 +134,7 @@ class CallbackHandler:
         lesson_data = await self.user_service.get_lesson_detail(user.id, lesson_id)
         
         if not lesson_data:
-            await update.callback_query.edit_message_text(BotTexts.LESSON_NOT_FOUND)
+            await self.safe_edit_message(update,BotTexts.LESSON_NOT_FOUND)
             return
         
         if not lesson_data["has_access"]:
@@ -159,11 +162,7 @@ class CallbackHandler:
                 lesson_data.get("test_completed", False)
             )
         
-        await update.callback_query.edit_message_text(
-            text,
-            reply_markup=keyboard,
-            parse_mode="Markdown"
-        )
+        await self.safe_edit_message(update, text, keyboard, "Markdown")
     
     async def start_test(self, update: Update, context: ContextTypes.DEFAULT_TYPE, lesson_id: str):
         """Start test for lesson"""
@@ -171,7 +170,7 @@ class CallbackHandler:
         questions_data = await self.api.get_lesson_questions(user.id, lesson_id)
         
         if not questions_data:
-            await update.callback_query.edit_message_text(BotTexts.TEST_ERROR)
+            await self.safe_edit_message(update,BotTexts.TEST_ERROR)
             return
         
         # Store test data in context
@@ -204,11 +203,7 @@ class CallbackHandler:
             context.user_data['lesson_id']
         )
         
-        await update.callback_query.edit_message_text(
-            text,
-            reply_markup=keyboard,
-            parse_mode="Markdown"
-        )
+        await self.safe_edit_message(update, text, keyboard, "Markdown")
     
     async def handle_answer(self, update: Update, context: ContextTypes.DEFAULT_TYPE, question_id: str, answer_idx: int):
         """Handle test answer"""
@@ -231,7 +226,7 @@ class CallbackHandler:
         result_data = await self.api.submit_test(user.id, lesson_id, answers)
         
         if not result_data:
-            await update.callback_query.edit_message_text(BotTexts.TEST_SAVE_ERROR)
+            await self.safe_edit_message(update,BotTexts.TEST_SAVE_ERROR)
             return
         
         correct_answers = calculate_correct_answers(result_data['score'], result_data['total_questions'])
@@ -249,11 +244,7 @@ class CallbackHandler:
         
         keyboard = get_test_finished_keyboard()
         
-        await update.callback_query.edit_message_text(
-            text,
-            reply_markup=keyboard,
-            parse_mode="Markdown"
-        )
+        await self.safe_edit_message(update, text, keyboard, "Markdown")
         
         # Clear test data
         context.user_data.clear()
@@ -277,18 +268,7 @@ class CallbackHandler:
             
             keyboard = get_results_list_keyboard(results_data)
         
-        if update.callback_query:
-            await update.callback_query.edit_message_text(
-                text,
-                reply_markup=keyboard,
-                parse_mode="Markdown"
-            )
-        else:
-            await update.message.reply_text(
-                text,
-                reply_markup=keyboard,
-                parse_mode="Markdown"
-            )
+        await self.safe_edit_message(update, text, keyboard, "Markdown")
     
     async def show_result_detail(self, update: Update, context: ContextTypes.DEFAULT_TYPE, result_id: str):
         """Show detailed test result"""
@@ -296,7 +276,7 @@ class CallbackHandler:
         result_data = await self.api.get_result_detail(user.id, result_id)
         
         if not result_data:
-            await update.callback_query.edit_message_text(BotTexts.RESULT_NOT_FOUND)
+            await self.safe_edit_message(update,BotTexts.RESULT_NOT_FOUND)
             return
         
         correct_answers = calculate_correct_answers(result_data['score'], result_data['total_questions'])
@@ -316,11 +296,7 @@ class CallbackHandler:
         
         keyboard = get_result_detail_keyboard()
         
-        await update.callback_query.edit_message_text(
-            text,
-            reply_markup=keyboard,
-            parse_mode="Markdown"
-        )
+        await self.safe_edit_message(update, text, keyboard, "Markdown")
     
     async def show_lesson_test_result(self, update: Update, context: ContextTypes.DEFAULT_TYPE, lesson_id: str):
         """Show test result for specific lesson"""
@@ -332,10 +308,11 @@ class CallbackHandler:
         """Show help information"""
         from bot.keyboards.main_menu import get_back_to_main_keyboard
         
-        await update.callback_query.edit_message_text(
+        await self.safe_edit_message(
+            update, 
             BotTexts.HELP_TEXT,
-            reply_markup=get_back_to_main_keyboard(),
-            parse_mode="Markdown"
+            get_back_to_main_keyboard(),
+            "Markdown"
         )
     
     async def show_profile(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -356,11 +333,7 @@ class CallbackHandler:
         else:
             text = "❌ Profil ma'lumotlarini yuklashda xatolik yuz berdi."
         
-        await update.callback_query.edit_message_text(
-            text,
-            reply_markup=get_back_to_main_keyboard(),
-            parse_mode="Markdown"
-        )
+        await self.safe_edit_message(update, text, get_back_to_main_keyboard(), "Markdown")
     
     async def show_quick_lessons(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Show quick access to recent or recommended lessons"""
@@ -385,11 +358,7 @@ class CallbackHandler:
                 
                 keyboard = get_lessons_list_keyboard(accessible_lessons[:5])
         
-        await update.callback_query.edit_message_text(
-            text,
-            reply_markup=keyboard,
-            parse_mode="Markdown"
-        )
+        await self.safe_edit_message(update, text, keyboard, "Markdown")
     
     async def show_progress(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Show user learning progress"""
@@ -417,11 +386,7 @@ class CallbackHandler:
         else:
             text = "❌ Taraqqiyot ma'lumotlarini yuklashda xatolik yuz berdi."
         
-        await update.callback_query.edit_message_text(
-            text,
-            reply_markup=get_back_to_main_keyboard(),
-            parse_mode="Markdown"
-        )
+        await self.safe_edit_message(update, text, get_back_to_main_keyboard(), "Markdown")
     
     async def show_latest_results(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Show latest test results"""
@@ -439,18 +404,11 @@ class CallbackHandler:
             
             keyboard = get_results_list_keyboard(results_data)
         
-        await update.callback_query.edit_message_text(
-            text,
-            reply_markup=keyboard,
-            parse_mode="Markdown"
-        )
+        await self.safe_edit_message(update, text, keyboard, "Markdown")
     
     async def refresh_data(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Refresh user data and show main menu"""
-        await update.callback_query.edit_message_text(
-            "🔄 Ma'lumotlar yangilanmoqda...",
-            parse_mode="Markdown"
-        )
+        await self.safe_edit_message(update, "🔄 Ma'lumotlar yangilanmoqda...", None, "Markdown")
         
         # Small delay to show loading message
         import asyncio
