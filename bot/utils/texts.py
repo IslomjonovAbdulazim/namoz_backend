@@ -13,9 +13,17 @@ class BotTexts:
     # Main menu
     MY_LESSONS = "📚 Mening darslarim"
     MY_RESULTS = "📊 Natijalarim"
+    PROFILE = "👤 Profil"
+    HELP = "❓ Yordam"
+    SETTINGS = "⚙️ Sozlamalar"
     MAIN_MENU = "🏠 Asosiy menyu"
     BACK_TO_LESSONS = "🔙 Darslarga qaytish"
     REFRESH = "🔄 Yangilash"
+    
+    # Quick actions
+    QUICK_LESSONS = "⚡ Tez darslar"
+    LATEST_RESULTS = "🆕 So'nggi natijalar"
+    PROGRESS = "📈 Taraqqiyot"
     
     # Lessons
     LESSONS_LIST = "📚 **Darslar ro'yxati:**\n\n"
@@ -58,9 +66,40 @@ class BotTexts:
     RESULT_DETAIL = "📊 **Batafsil natija**\n\n📚 Dars: {lesson}\n🎯 Natija: {score}% ({correct}/{total})\n📅 Sana: {date}\n\n**Javoblar:**\n"
     BACK_TO_RESULTS = "🔙 Natijalarga qaytish"
     
+    # Help and info
+    HELP_TEXT = """🤖 **Bot haqida ma'lumot:**
+
+📚 **Asosiy funksiyalar:**
+• Darslarni ko'rish va o'rganish
+• Testlar topshirish va natijalarni ko'rish
+• Taraqqiyotni kuzatish
+
+🎯 **Buyruqlar:**
+/start - Botni ishga tushirish
+/lessons - Darslar ro'yxati
+/results - Test natijalari
+/help - Yordam
+
+💡 **Maslahatlar:**
+• Tugmalar orqali oson navigatsiya qiling
+• Testlarni diqqat bilan bajaring
+• Natijalardagi tahlillarni ko'rib chiqing
+
+📞 **Yordam kerakmi?**
+Administrator bilan bog'laning: @admin"""
+
+    PROFILE_TEXT = """👤 **Sizning profilingiz:**
+
+📱 Telefon: {phone}
+📊 Umumiy testlar: {total_tests}
+✅ O'tgan testlar: {passed_tests}
+📈 O'rtacha ball: {average_score}%
+📅 Ro'yxatdan o'tgan: {registration_date}"""
+
     # Commands
     CMD_LESSONS = "📚 /lessons - Darslar ro'yxati"
     CMD_RESULTS = "📊 /results - Test natijalari"
+    CMD_HELP = "❓ /help - Yordam va ma'lumot"
     
     # Errors
     GENERAL_ERROR = "❌ Xatolik yuz berdi. Qaytadan urinib ko'ring yoki administrator bilan bog'laning."

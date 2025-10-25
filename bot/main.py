@@ -41,8 +41,17 @@ class StudentBot:
         self.callback_handler = CallbackHandler(self.user_service)
         self.registration_handler = RegistrationHandler(self.user_service)
         
-        # Initialize Telegram application
-        self.application = Application.builder().token(bot_config.BOT_TOKEN).build()
+        # Initialize Telegram application with proper timeouts
+        self.application = (
+            Application.builder()
+            .token(bot_config.BOT_TOKEN)
+            .connection_pool_size(10)
+            .pool_timeout(bot_config.POOL_TIMEOUT)
+            .read_timeout(bot_config.READ_TIMEOUT)
+            .write_timeout(bot_config.WRITE_TIMEOUT)
+            .connect_timeout(bot_config.CONNECT_TIMEOUT)
+            .build()
+        )
         
         # Add error handler
         self.application.add_error_handler(self.error_handler)
@@ -56,6 +65,12 @@ class StudentBot:
         )
         self.application.add_handler(
             CommandHandler("results", self.command_handler.results_command)
+        )
+        self.application.add_handler(
+            CommandHandler("help", self.command_handler.help_command)
+        )
+        self.application.add_handler(
+            CommandHandler("profile", self.command_handler.profile_command)
         )
         
         # Add callback handler
@@ -94,9 +109,18 @@ class StudentBot:
         """Run the bot"""
         try:
             await self.initialize()
+            
+            # Test bot token validity first
+            logger.info("Testing bot token...")
             await self.application.initialize()
+            bot_info = await self.application.bot.get_me()
+            logger.info(f"Bot connected successfully: @{bot_info.username}")
+            
             await self.application.start()
-            await self.application.updater.start_polling()
+            await self.application.updater.start_polling(
+                drop_pending_updates=True,
+                allowed_updates=["message", "callback_query"]
+            )
             
             logger.info("Bot started successfully. Press Ctrl+C to stop.")
             
@@ -108,9 +132,17 @@ class StudentBot:
                 
         except Exception as e:
             logger.error(f"Error running bot: {e}")
+            if "Unauthorized" in str(e):
+                logger.error("Bot token is invalid or revoked. Please check your BOT_TOKEN in .env file.")
+            elif "TimedOut" in str(e) or "ConnectTimeout" in str(e):
+                logger.error("Connection timeout. Check your internet connection or try again later.")
             raise
         finally:
-            await self.application.stop()
+            try:
+                if hasattr(self, 'application') and self.application:
+                    await self.application.stop()
+            except Exception as cleanup_error:
+                logger.error(f"Error during cleanup: {cleanup_error}")
             await self.cleanup()
 
 async def main():

@@ -60,10 +60,13 @@ class APIClient:
         log_user_action(telegram_id, "submit_test", f"{lesson_id} - {len(answers)} answers")
         return await self._request("POST", f"/bot/user/{telegram_id}/lesson/{lesson_id}/test", {"answers": answers})
     
-    async def get_user_results(self, telegram_id: int) -> Optional[List[Dict[str, Any]]]:
+    async def get_user_results(self, telegram_id: int, limit: Optional[int] = None) -> Optional[List[Dict[str, Any]]]:
         """Get user test results"""
         log_user_action(telegram_id, "get_results")
-        return await self._request("GET", f"/bot/user/{telegram_id}/results")
+        endpoint = f"/bot/user/{telegram_id}/results"
+        if limit:
+            endpoint += f"?limit={limit}"
+        return await self._request("GET", endpoint)
     
     async def get_result_detail(self, telegram_id: int, result_id: str) -> Optional[Dict[str, Any]]:
         """Get detailed test result"""
@@ -94,3 +97,13 @@ class APIClient:
         
         result = await self._request("POST", "/bot/register", user_data)
         return result is not None
+    
+    async def get_user_stats(self, telegram_id: int) -> Optional[Dict[str, Any]]:
+        """Get user statistics"""
+        log_user_action(telegram_id, "get_stats")
+        return await self._request("GET", f"/bot/user/{telegram_id}/stats")
+    
+    async def get_user_progress(self, telegram_id: int) -> Optional[Dict[str, Any]]:
+        """Get user learning progress"""
+        log_user_action(telegram_id, "get_progress")
+        return await self._request("GET", f"/bot/user/{telegram_id}/progress")

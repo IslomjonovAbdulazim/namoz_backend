@@ -85,3 +85,39 @@ class CommandHandler:
         except Exception as e:
             logger.error(f"Error in results command for user {user.id}: {e}")
             await update.message.reply_text(BotTexts.GENERAL_ERROR)
+    
+    async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /help command"""
+        try:
+            from bot.keyboards.main_menu import get_back_to_main_keyboard
+            
+            await update.message.reply_text(
+                BotTexts.HELP_TEXT,
+                reply_markup=get_back_to_main_keyboard(),
+                parse_mode="Markdown"
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in help command: {e}")
+            await update.message.reply_text(BotTexts.GENERAL_ERROR)
+    
+    async def profile_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /profile command"""
+        user = update.effective_user
+        
+        try:
+            # Check if user is registered
+            is_registered = await self.user_service.is_user_registered(user.id)
+            
+            if not is_registered:
+                await self.registration_handler.request_phone_number(update, context)
+                return
+            
+            # Import here to avoid circular import
+            from bot.handlers.callbacks import CallbackHandler
+            callback_handler = CallbackHandler(self.user_service)
+            await callback_handler.show_profile(update, context)
+            
+        except Exception as e:
+            logger.error(f"Error in profile command for user {user.id}: {e}")
+            await update.message.reply_text(BotTexts.GENERAL_ERROR)

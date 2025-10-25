@@ -46,6 +46,22 @@ class UserService:
         """Get lesson details for user"""
         return await self.api.get_lesson_detail(telegram_id, lesson_id)
     
-    async def get_user_results(self, telegram_id: int) -> Optional[list]:
+    async def get_user_results(self, telegram_id: int, limit: Optional[int] = None) -> Optional[list]:
         """Get test results for user"""
-        return await self.api.get_user_results(telegram_id)
+        return await self.api.get_user_results(telegram_id, limit=limit)
+    
+    async def get_user_stats(self, telegram_id: int) -> Optional[Dict[str, Any]]:
+        """Get user statistics and profile information"""
+        try:
+            return await self.api.get_user_stats(telegram_id)
+        except Exception as e:
+            logger.error(f"Error getting user stats for {telegram_id}: {e}")
+            return None
+    
+    async def get_user_progress(self, telegram_id: int) -> Optional[Dict[str, Any]]:
+        """Get user learning progress"""
+        try:
+            return await self.api.get_user_progress(telegram_id)
+        except Exception as e:
+            logger.error(f"Error getting user progress for {telegram_id}: {e}")
+            return None

@@ -36,6 +36,18 @@ class CallbackHandler:
                 await self.show_lessons(update, context)
             elif data == "results":
                 await self.show_results(update, context)
+            elif data == "help":
+                await self.show_help(update, context)
+            elif data == "profile":
+                await self.show_profile(update, context)
+            elif data == "quick_lessons":
+                await self.show_quick_lessons(update, context)
+            elif data == "progress":
+                await self.show_progress(update, context)
+            elif data == "latest_results":
+                await self.show_latest_results(update, context)
+            elif data == "refresh_data":
+                await self.refresh_data(update, context)
             elif data.startswith("lesson_"):
                 lesson_id = data.split("_", 1)[1]
                 await self.show_lesson_detail(update, context, lesson_id)
@@ -315,3 +327,136 @@ class CallbackHandler:
         # This would need to find the result_id for the given lesson
         # For now, redirect to general results
         await self.show_results(update, context)
+    
+    async def show_help(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Show help information"""
+        from bot.keyboards.main_menu import get_back_to_main_keyboard
+        
+        await update.callback_query.edit_message_text(
+            BotTexts.HELP_TEXT,
+            reply_markup=get_back_to_main_keyboard(),
+            parse_mode="Markdown"
+        )
+    
+    async def show_profile(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Show user profile information"""
+        from bot.keyboards.main_menu import get_back_to_main_keyboard
+        
+        user = update.effective_user
+        user_stats = await self.user_service.get_user_stats(user.id)
+        
+        if user_stats:
+            text = BotTexts.PROFILE_TEXT.format(
+                phone=user_stats.get('phone', 'Kiritilmagan'),
+                total_tests=user_stats.get('total_tests', 0),
+                passed_tests=user_stats.get('passed_tests', 0),
+                average_score=user_stats.get('average_score', 0),
+                registration_date=user_stats.get('registration_date', 'Noma\'lum')
+            )
+        else:
+            text = "❌ Profil ma'lumotlarini yuklashda xatolik yuz berdi."
+        
+        await update.callback_query.edit_message_text(
+            text,
+            reply_markup=get_back_to_main_keyboard(),
+            parse_mode="Markdown"
+        )
+    
+    async def show_quick_lessons(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Show quick access to recent or recommended lessons"""
+        user = update.effective_user
+        lessons_data = await self.user_service.get_user_lessons(user.id)
+        
+        if not lessons_data:
+            text = "📚 Hozircha mavjud darslar yo'q yoki ularga kirish huquqingiz yo'q."
+            keyboard = get_main_menu_keyboard()
+        else:
+            # Show only accessible lessons
+            accessible_lessons = [lesson for lesson in lessons_data if lesson.get('has_access', False)]
+            
+            if not accessible_lessons:
+                text = "🔒 Sizda hali ochiq darslar yo'q. Darslarni sotib oling yoki administrator bilan bog'laning."
+                keyboard = get_main_menu_keyboard()
+            else:
+                text = "⚡ **Tez darslar:**\n\n"
+                for lesson in accessible_lessons[:5]:  # Show first 5 accessible lessons
+                    status = "✅ Bajarilgan" if lesson.get('score') else "❓ Bajarilmagan"
+                    text += f"📚 {lesson['title']} - {status}\n"
+                
+                keyboard = get_lessons_list_keyboard(accessible_lessons[:5])
+        
+        await update.callback_query.edit_message_text(
+            text,
+            reply_markup=keyboard,
+            parse_mode="Markdown"
+        )
+    
+    async def show_progress(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Show user learning progress"""
+        from bot.keyboards.main_menu import get_back_to_main_keyboard
+        
+        user = update.effective_user
+        progress_data = await self.user_service.get_user_progress(user.id)
+        
+        if progress_data:
+            text = f"""📈 **Sizning taraqqiyotingiz:**
+
+📊 **Umumiy statistika:**
+• Jami darslar: {progress_data.get('total_lessons', 0)}
+• Ochiq darslar: {progress_data.get('accessible_lessons', 0)}
+• Yakunlangan darslar: {progress_data.get('completed_lessons', 0)}
+
+🎯 **Test natijalari:**
+• Topshirilgan testlar: {progress_data.get('total_tests', 0)}
+• Muvaffaqiyatli: {progress_data.get('passed_tests', 0)}
+• O'rtacha ball: {progress_data.get('average_score', 0)}%
+
+📅 **So'nggi faollik:**
+• Oxirgi test: {progress_data.get('last_test_date', 'Hali yo\'q')}
+• Oxirgi kirish: {progress_data.get('last_login', 'Noma\'lum')}"""
+        else:
+            text = "❌ Taraqqiyot ma'lumotlarini yuklashda xatolik yuz berdi."
+        
+        await update.callback_query.edit_message_text(
+            text,
+            reply_markup=get_back_to_main_keyboard(),
+            parse_mode="Markdown"
+        )
+    
+    async def show_latest_results(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Show latest test results"""
+        user = update.effective_user
+        results_data = await self.user_service.get_user_results(user.id, limit=5)
+        
+        if not results_data:
+            text = "📊 So'nggi natijalar mavjud emas."
+            keyboard = get_main_menu_keyboard()
+        else:
+            text = "🆕 **So'nggi 5 ta natija:**\n\n"
+            for result in results_data:
+                score_icon = BotTexts.get_score_icon(result["score"])
+                text += f"{score_icon} {result['lesson_title']}: {result['score']}%\n"
+            
+            keyboard = get_results_list_keyboard(results_data)
+        
+        await update.callback_query.edit_message_text(
+            text,
+            reply_markup=keyboard,
+            parse_mode="Markdown"
+        )
+    
+    async def refresh_data(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Refresh user data and show main menu"""
+        await update.callback_query.edit_message_text(
+            "🔄 Ma'lumotlar yangilanmoqda...",
+            parse_mode="Markdown"
+        )
+        
+        # Small delay to show loading message
+        import asyncio
+        await asyncio.sleep(1)
+        
+        # Clear any cached data if your service has caching
+        # await self.user_service.clear_cache(user.id)
+        
+        await self.show_main_menu(update, context)
