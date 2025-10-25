@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.models import *
 from app.core.database import init_db
 from app.api import admin
+from app.api import bot_simple as bot
 
 app = FastAPI(
     title="Namoz Education Backend",
@@ -21,6 +22,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(admin.router)
+app.include_router(bot.router)
 
 @app.on_event("startup")
 async def startup_event():
