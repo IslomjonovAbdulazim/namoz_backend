@@ -148,7 +148,12 @@ class CallbackHandler:
                 title=lesson_data['title'],
                 description=lesson_data['description']
             )
-            keyboard = get_locked_lesson_keyboard()  # Special keyboard with contact admin button
+            # Get price information for the contact message
+            lesson_price = ""
+            if lesson_data.get("price"):
+                lesson_price = f"{lesson_data['price']:,} so'm"
+            
+            keyboard = get_locked_lesson_keyboard(lesson_data['title'], lesson_price)
         else:
             text = BotTexts.UNLOCKED_LESSON.format(
                 title=lesson_data['title'],

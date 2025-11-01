@@ -86,10 +86,21 @@ def get_test_finished_keyboard() -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup(keyboard)
 
-def get_locked_lesson_keyboard() -> InlineKeyboardMarkup:
+def get_locked_lesson_keyboard(lesson_title: str = "", lesson_price: str = "") -> InlineKeyboardMarkup:
     """Get keyboard for locked lesson with contact admin button"""
+    # Create pre-filled message with course details
+    message = f"Salom! Men '{lesson_title}' darsini sotib olishni xohlayman."
+    if lesson_price:
+        message += f" Narxi: {lesson_price}"
+    message += " Iltimos, to'lov va kirish haqida ma'lumot bering."
+    
+    # URL encode the message
+    import urllib.parse
+    encoded_message = urllib.parse.quote(message)
+    contact_url = f"https://t.me/Ekolingvist1?text={encoded_message}"
+    
     keyboard = [
-        [InlineKeyboardButton("💳 Administrator bilan bog'lanish", url="https://t.me/Ekolingvist1")],
+        [InlineKeyboardButton("💳 Administrator bilan bog'lanish", url=contact_url)],
         [InlineKeyboardButton(BotTexts.BACK_TO_LESSONS, callback_data="lessons")]
     ]
     return InlineKeyboardMarkup(keyboard)
