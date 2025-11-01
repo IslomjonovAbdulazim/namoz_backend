@@ -14,6 +14,10 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=getattr(logging, bot_config.LOG_LEVEL.upper())
 )
+
+# Disable INFO logs from httpx to reduce noise
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 logger = logging.getLogger(__name__)
 
 class StudentBot:
