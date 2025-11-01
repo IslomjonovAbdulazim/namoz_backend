@@ -55,6 +55,7 @@ class CallbackHandler:
         user = update.effective_user
         
         try:
+            logger.info(f"Processing callback: {data}")
             if data == "start":
                 await self.show_main_menu(update, context)
             elif data == "lessons":
@@ -92,6 +93,7 @@ class CallbackHandler:
                 await self.show_lesson_test_result(update, context, lesson_id)
             elif data.startswith("result_"):
                 lesson_id = data.split("_", 1)[1]
+                logger.info(f"Handling result_ callback with lesson_id: {lesson_id}")
                 await self.show_lesson_test_result(update, context, lesson_id)
                 
         except Exception as e:
