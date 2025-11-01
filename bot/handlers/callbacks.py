@@ -90,6 +90,9 @@ class CallbackHandler:
             elif data.startswith("test_result_"):
                 lesson_id = data.split("_", 2)[2]
                 await self.show_lesson_test_result(update, context, lesson_id)
+            elif data.startswith("result_"):
+                lesson_id = data.split("_", 1)[1]
+                await self.show_lesson_test_result(update, context, lesson_id)
                 
         except Exception as e:
             logger.error(f"Error handling callback {data} for user {user.id}: {e}")
