@@ -10,6 +10,7 @@ from app.models.access import UserLessonAccessDB
 from pydantic import BaseModel
 import logging
 import uuid
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -276,8 +277,8 @@ async def submit_test(telegram_id: int, lesson_id: str, submission: TestSubmissi
             lesson_id=lesson.id,
             score=score,
             total_questions=total_questions,
-            correct_answers=correct_answers,
-            passed=passed
+            answers=[],  # Store as empty list for now, could be enhanced later
+            ended_at=datetime.utcnow()
         )
         
         db.add(test_result)
@@ -321,13 +322,13 @@ async def get_user_results(telegram_id: int, limit: Optional[int] = None, db: Se
         result_list = []
         for test_result, lesson in results:
             result_data = {
-                "id": test_result.id,
+                "id": str(test_result.id),
                 "lesson_title": lesson.title,
                 "score": test_result.score,
-                "correct_answers": test_result.correct_answers,
+                "correct_answers": round((test_result.score * test_result.total_questions) / 100),
                 "total_questions": test_result.total_questions,
-                "passed": test_result.passed,
-                "completed_at": test_result.created_at.isoformat()
+                "passed": test_result.score >= 70,
+                "completed_at": test_result.ended_at.isoformat() if test_result.ended_at else "Unknown"
             }
             result_list.append(result_data)
         
@@ -349,14 +350,9 @@ async def get_user_stats(telegram_id: int, db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="User not found")
         
         # Get stats
-        total_tests = db.query(UserTestResultDB).filter(UserTestResultDB.user_id == user.id).count()
-        passed_tests = db.query(UserTestResultDB).filter(
-            UserTestResultDB.user_id == user.id,
-            UserTestResultDB.passed == True
-        ).count()
-        
-        # Calculate average score
         results = db.query(UserTestResultDB).filter(UserTestResultDB.user_id == user.id).all()
+        total_tests = len(results)
+        passed_tests = sum(1 for r in results if r.score >= 70)
         average_score = sum(r.score for r in results) / len(results) if results else 0
         
         return {
@@ -385,23 +381,15 @@ async def get_user_progress(telegram_id: int, db: Session = Depends(get_db)):
         # Get progress data
         total_lessons = db.query(LessonDB).count()
         accessible_lessons = db.query(UserLessonAccessDB).filter(UserLessonAccessDB.user_id == user.id).count()
-        completed_lessons = db.query(UserTestResultDB).filter(
-            UserTestResultDB.user_id == user.id,
-            UserTestResultDB.passed == True
-        ).count()
-        
-        total_tests = db.query(UserTestResultDB).filter(UserTestResultDB.user_id == user.id).count()
-        passed_tests = db.query(UserTestResultDB).filter(
-            UserTestResultDB.user_id == user.id,
-            UserTestResultDB.passed == True
-        ).count()
-        
         results = db.query(UserTestResultDB).filter(UserTestResultDB.user_id == user.id).all()
+        completed_lessons = sum(1 for r in results if r.score >= 70)
+        total_tests = len(results)
+        passed_tests = sum(1 for r in results if r.score >= 70)
         average_score = sum(r.score for r in results) / len(results) if results else 0
         
         # Get last test date
-        last_result = db.query(UserTestResultDB).filter(UserTestResultDB.user_id == user.id).order_by(UserTestResultDB.created_at.desc()).first()
-        last_test_date = last_result.created_at.strftime("%d.%m.%Y") if last_result else "Hali yo'q"
+        last_result = db.query(UserTestResultDB).filter(UserTestResultDB.user_id == user.id).order_by(UserTestResultDB.ended_at.desc()).first()
+        last_test_date = last_result.ended_at.strftime("%d.%m.%Y") if last_result and last_result.ended_at else "Hali yo'q"
         
         return {
             "total_lessons": total_lessons,
@@ -445,9 +433,9 @@ async def get_result_detail(telegram_id: int, result_id: int, db: Session = Depe
         return {
             "lesson_title": lesson.title,
             "score": test_result.score,
-            "correct_answers": test_result.correct_answers,
+            "correct_answers": round((test_result.score * test_result.total_questions) / 100),
             "total_questions": test_result.total_questions,
-            "completed_at": test_result.created_at.isoformat(),
+            "completed_at": test_result.ended_at.isoformat() if test_result.ended_at else "Unknown",
             "answers": []  # Would contain individual answers if stored
         }
         

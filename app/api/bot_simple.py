@@ -276,8 +276,8 @@ async def submit_test(telegram_id: int, lesson_id: str, submission: TestSubmissi
             lesson_id=lesson.id,
             score=score,
             total_questions=total_questions,
-            correct_answers=correct_answers,
-            passed=passed
+            answers=[],  # Store as empty list for now, could be enhanced later
+            ended_at=datetime.utcnow()
         )
         
         db.add(test_result)
@@ -324,7 +324,7 @@ async def get_result_detail(telegram_id: int, result_id: int, db: Session = Depe
         return {
             "lesson_title": lesson.title,
             "score": test_result.score,
-            "correct_answers": test_result.correct_answers,
+            "correct_answers": round((test_result.score * test_result.total_questions) / 100),  # Calculate from score
             "total_questions": test_result.total_questions,
             "completed_at": test_result.ended_at.isoformat() if test_result.ended_at else "Unknown",
             "answers": []  # Would contain individual answers if stored
