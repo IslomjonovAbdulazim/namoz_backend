@@ -22,6 +22,13 @@ class UserRegistration(BaseModel):
     full_name: str
     phone_number: str
 
+class TestAnswer(BaseModel):
+    question_id: int
+    selected_option: int
+
+class TestSubmission(BaseModel):
+    answers: List[TestAnswer]
+
 @router.post("/register")
 async def register_user(user_data: UserRegistration, db: Session = Depends(get_db)):
     """Register a new user from Telegram bot"""
@@ -161,6 +168,173 @@ async def get_lesson_detail(telegram_id: int, lesson_id: str, db: Session = Depe
     except Exception as e:
         logger.error(f"Error getting lesson detail for user {telegram_id}, lesson {lesson_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to get lesson detail")
+
+@router.get("/user/{telegram_id}/lesson/{lesson_id}/questions")
+async def get_lesson_questions(telegram_id: int, lesson_id: str, db: Session = Depends(get_db)):
+    """Get test questions for lesson"""
+    try:
+        # Get user
+        user = db.query(UserDB).filter(UserDB.telegram_id == telegram_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get lesson by converting string UUID to UUID object
+        try:
+            lesson_uuid = uuid.UUID(lesson_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid lesson ID format")
+        
+        lesson = db.query(LessonDB).filter(LessonDB.id == lesson_uuid).first()
+        if not lesson:
+            raise HTTPException(status_code=404, detail="Lesson not found")
+        
+        # Check access
+        access = db.query(UserLessonAccessDB).filter(
+            UserLessonAccessDB.user_id == user.id,
+            UserLessonAccessDB.lesson_id == lesson.id
+        ).first()
+        
+        if not access:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Get questions
+        questions = db.query(TestQuestionDB).filter(TestQuestionDB.lesson_id == lesson.id).all()
+        
+        result = []
+        for question in questions:
+            question_data = {
+                "id": str(question.id),
+                "question_text": question.question_text,
+                "options": question.options
+            }
+            result.append(question_data)
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting questions for user {telegram_id}, lesson {lesson_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get questions")
+
+@router.post("/user/{telegram_id}/lesson/{lesson_id}/test")
+async def submit_test(telegram_id: int, lesson_id: str, submission: TestSubmission, db: Session = Depends(get_db)):
+    """Submit test answers"""
+    try:
+        # Get user
+        user = db.query(UserDB).filter(UserDB.telegram_id == telegram_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get lesson by converting string UUID to UUID object
+        try:
+            lesson_uuid = uuid.UUID(lesson_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid lesson ID format")
+        
+        lesson = db.query(LessonDB).filter(LessonDB.id == lesson_uuid).first()
+        if not lesson:
+            raise HTTPException(status_code=404, detail="Lesson not found")
+        
+        # Check access
+        access = db.query(UserLessonAccessDB).filter(
+            UserLessonAccessDB.user_id == user.id,
+            UserLessonAccessDB.lesson_id == lesson.id
+        ).first()
+        
+        if not access:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Get questions
+        questions = db.query(TestQuestionDB).filter(TestQuestionDB.lesson_id == lesson.id).all()
+        question_dict = {q.id: q for q in questions}
+        
+        # Calculate score
+        correct_answers = 0
+        total_questions = len(questions)
+        
+        for answer in submission.answers:
+            question = question_dict.get(answer.question_id)
+            if question and question.correct_option == answer.selected_option:
+                correct_answers += 1
+        
+        score = round((correct_answers / total_questions) * 100) if total_questions > 0 else 0
+        passed = score >= 70  # 70% passing score
+        
+        # Delete existing result if any
+        existing_result = db.query(UserTestResultDB).filter(
+            UserTestResultDB.user_id == user.id,
+            UserTestResultDB.lesson_id == lesson.id
+        ).first()
+        
+        if existing_result:
+            db.delete(existing_result)
+        
+        # Create new test result
+        test_result = UserTestResultDB(
+            user_id=user.id,
+            lesson_id=lesson.id,
+            score=score,
+            total_questions=total_questions,
+            correct_answers=correct_answers,
+            passed=passed
+        )
+        
+        db.add(test_result)
+        db.commit()
+        db.refresh(test_result)
+        
+        logger.info(f"Test submitted: user {telegram_id}, lesson {lesson_id}, score {score}%")
+        
+        return {
+            "score": score,
+            "correct_answers": correct_answers,
+            "total_questions": total_questions,
+            "passed": passed,
+            "result_id": str(test_result.id)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error submitting test for user {telegram_id}, lesson {lesson_id}: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to submit test")
+
+@router.get("/user/{telegram_id}/result/{result_id}")
+async def get_result_detail(telegram_id: int, result_id: int, db: Session = Depends(get_db)):
+    """Get detailed test result"""
+    try:
+        # Get user
+        user = db.query(UserDB).filter(UserDB.telegram_id == telegram_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get result
+        result = db.query(UserTestResultDB, LessonDB).join(LessonDB).filter(
+            UserTestResultDB.id == result_id,
+            UserTestResultDB.user_id == user.id
+        ).first()
+        
+        if not result:
+            raise HTTPException(status_code=404, detail="Result not found")
+        
+        test_result, lesson = result
+        
+        return {
+            "lesson_title": lesson.title,
+            "score": test_result.score,
+            "correct_answers": test_result.correct_answers,
+            "total_questions": test_result.total_questions,
+            "completed_at": test_result.ended_at.isoformat() if test_result.ended_at else "Unknown",
+            "answers": []  # Would contain individual answers if stored
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting result detail for user {telegram_id}, result {result_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get result detail")
 
 @router.get("/user/{telegram_id}/results")
 async def get_user_results(telegram_id: int, limit: Optional[int] = None, db: Session = Depends(get_db)):
