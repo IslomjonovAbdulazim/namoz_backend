@@ -11,7 +11,8 @@ from bot.keyboards.lessons import (
     get_lessons_list_keyboard, 
     get_lesson_materials_keyboard,
     get_test_question_keyboard,
-    get_test_finished_keyboard
+    get_test_finished_keyboard,
+    get_locked_lesson_keyboard
 )
 from bot.keyboards.results import get_results_list_keyboard, get_result_detail_keyboard
 
@@ -147,7 +148,7 @@ class CallbackHandler:
                 title=lesson_data['title'],
                 description=lesson_data['description']
             )
-            keyboard = get_lessons_list_keyboard([])  # Empty list for back button only
+            keyboard = get_locked_lesson_keyboard()  # Special keyboard with contact admin button
         else:
             text = BotTexts.UNLOCKED_LESSON.format(
                 title=lesson_data['title'],

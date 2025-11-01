@@ -91,3 +91,11 @@ def get_test_finished_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(BotTexts.MY_RESULTS, callback_data="results")]
     ]
     return InlineKeyboardMarkup(keyboard)
+
+def get_locked_lesson_keyboard() -> InlineKeyboardMarkup:
+    """Get keyboard for locked lesson with contact admin button"""
+    keyboard = [
+        [InlineKeyboardButton("💳 Administrator bilan bog'lanish", url="https://t.me/Ekolingvist1")],
+        [InlineKeyboardButton(BotTexts.BACK_TO_LESSONS, callback_data="lessons")]
+    ]
+    return InlineKeyboardMarkup(keyboard)
