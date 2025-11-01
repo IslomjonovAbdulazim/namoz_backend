@@ -144,16 +144,16 @@ class CallbackHandler:
             return
         
         if not lesson_data["has_access"]:
-            # Create admin contact link with user details and lesson info
+            # Create admin contact link with lesson info
             user_name = get_user_display_name(user)
             lesson_price = ""
             if lesson_data.get("price"):
                 lesson_price = f"{lesson_data['price']:,} so'm"
             
-            # Create pre-filled message with user and lesson details
-            message = f"Salom! Men {user_name} (ID: {user.id}). '{lesson_data['title']}' darsini sotib olishni xohlayman."
+            # Create pre-filled message with lesson details and name in backticks for easy copying
+            message = f"Salom! Men `{user_name}` '{lesson_data['title']}' darsini sotib olishni xohlayman."
             if lesson_price:
-                message += f" Narxi: {lesson_price}."
+                message += f" Narxi: {lesson_price}"
             message += " Iltimos, to'lov va kirish haqida ma'lumot bering."
             
             # URL encode the message
