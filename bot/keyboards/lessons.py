@@ -67,7 +67,10 @@ def get_test_question_keyboard(question_id: str, options: List[str], lesson_id: 
     # Add option buttons
     for i, option in enumerate(options):
         letter = chr(65 + i)  # A, B, C, D
-        button_text = f"{letter}. {truncate_text(option, 40)}"
+        # Try to avoid truncation by using a more generous limit
+        # Telegram can handle reasonably long button text
+        button_text = f"{letter}. {option}"
+        
         keyboard.append([InlineKeyboardButton(
             button_text, 
             callback_data=f"answer_{question_id}_{i}"
