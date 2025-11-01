@@ -164,8 +164,7 @@ class CallbackHandler:
             
             keyboard = get_lesson_materials_keyboard(
                 lesson_data, 
-                lesson_id, 
-                lesson_data.get("test_completed", False)
+                lesson_id
             )
         
         await self.safe_edit_message(update, text, keyboard, "Markdown")

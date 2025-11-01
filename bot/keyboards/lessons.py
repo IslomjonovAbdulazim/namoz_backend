@@ -30,18 +30,15 @@ def get_lesson_detail_keyboard(lesson_id: str, has_access: bool, test_completed:
         # Add material buttons - these will be URLs
         # Note: URLs will be added dynamically based on lesson data
         
-        # Add test button
-        if not test_completed:
-            keyboard.append([InlineKeyboardButton(BotTexts.TAKE_TEST, callback_data=f"test_{lesson_id}")])
-        else:
-            keyboard.append([InlineKeyboardButton(BotTexts.VIEW_RESULT, callback_data=f"result_{lesson_id}")])
+        # Add test button - always show test option
+        keyboard.append([InlineKeyboardButton(BotTexts.TAKE_TEST, callback_data=f"test_{lesson_id}")])
     
     # Back button
     keyboard.append([InlineKeyboardButton(BotTexts.BACK_TO_LESSONS, callback_data="lessons")])
     
     return InlineKeyboardMarkup(keyboard)
 
-def get_lesson_materials_keyboard(lesson_data: Dict[str, Any], lesson_id: str, test_completed: bool = False) -> InlineKeyboardMarkup:
+def get_lesson_materials_keyboard(lesson_data: Dict[str, Any], lesson_id: str) -> InlineKeyboardMarkup:
     """Get keyboard with material URLs and test button"""
     keyboard = []
     
@@ -55,11 +52,8 @@ def get_lesson_materials_keyboard(lesson_data: Dict[str, Any], lesson_id: str, t
     if lesson_data.get("ppt_url"):
         keyboard.append([InlineKeyboardButton(BotTexts.PRESENTATION, url=lesson_data["ppt_url"])])
     
-    # Test button
-    if not test_completed:
-        keyboard.append([InlineKeyboardButton(BotTexts.TAKE_TEST, callback_data=f"test_{lesson_id}")])
-    else:
-        keyboard.append([InlineKeyboardButton(BotTexts.VIEW_RESULT, callback_data=f"test_result_{lesson_id}")])
+    # Test button - always show test option
+    keyboard.append([InlineKeyboardButton(BotTexts.TAKE_TEST, callback_data=f"test_{lesson_id}")])
     
     # Back button
     keyboard.append([InlineKeyboardButton(BotTexts.BACK_TO_LESSONS, callback_data="lessons")])
