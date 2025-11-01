@@ -9,6 +9,7 @@ from app.models.test_question import TestQuestionDB
 from app.models.access import UserLessonAccessDB
 from pydantic import BaseModel
 import logging
+import uuid
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -105,6 +106,61 @@ async def get_user_lessons(telegram_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error getting lessons for user {telegram_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to get lessons")
+
+@router.get("/user/{telegram_id}/lesson/{lesson_id}")
+async def get_lesson_detail(telegram_id: int, lesson_id: str, db: Session = Depends(get_db)):
+    """Get detailed lesson information"""
+    try:
+        # Get user
+        user = db.query(UserDB).filter(UserDB.telegram_id == telegram_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get lesson by converting string UUID to UUID object
+        try:
+            lesson_uuid = uuid.UUID(lesson_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid lesson ID format")
+        
+        lesson = db.query(LessonDB).filter(LessonDB.id == lesson_uuid).first()
+        if not lesson:
+            raise HTTPException(status_code=404, detail="Lesson not found")
+        
+        # Check access
+        access = db.query(UserLessonAccessDB).filter(
+            UserLessonAccessDB.user_id == user.id,
+            UserLessonAccessDB.lesson_id == lesson.id
+        ).first()
+        
+        has_access = access is not None
+        
+        # Get test result
+        test_result = db.query(UserTestResultDB).filter(
+            UserTestResultDB.user_id == user.id,
+            UserTestResultDB.lesson_id == lesson.id
+        ).first()
+        
+        lesson_data = {
+            "id": str(lesson.id),
+            "title": lesson.title,
+            "description": lesson.description,
+            "content": lesson.description if has_access else None,
+            "video_url": lesson.video_url if has_access else None,
+            "pdf_url": lesson.pdf_url if has_access else None,
+            "presentation_url": lesson.ppt_url if has_access else None,
+            "price": access.amount if access else 50000,
+            "has_access": has_access,
+            "test_completed": test_result is not None,
+            "score": test_result.score if test_result else None
+        }
+        
+        return lesson_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting lesson detail for user {telegram_id}, lesson {lesson_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get lesson detail")
 
 @router.get("/user/{telegram_id}/results")
 async def get_user_results(telegram_id: int, limit: Optional[int] = None, db: Session = Depends(get_db)):
