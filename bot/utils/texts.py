@@ -32,7 +32,7 @@ class BotTexts:
     LESSON_NOT_FOUND = "❌ Dars topilmadi."
     
     # Lesson access
-    LOCKED_LESSON = "🔒 **{title}**\n\n📝 {description}\n\n❌ Bu darsga kirish huquqingiz yo'q.\n💳 Xarid qilish uchun administrator bilan bog'laning: @Ekolingvist1"
+    LOCKED_LESSON = "🔒 **{title}**\n\n📝 {description}\n\n❌ Bu darsga kirish huquqingiz yo'q.\n💳 Xarid qilish uchun administrator bilan bog'laning: {admin_contact}"
     UNLOCKED_LESSON = "✅ **{title}**\n\n📝 {description}\n\n"
     TEST_COMPLETED = "📊 Test topshirilgan: {score}%\n\n"
     TEST_NOT_COMPLETED = "❓ Test hali topshirilmagan\n\n"

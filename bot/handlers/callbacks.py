@@ -144,14 +144,28 @@ class CallbackHandler:
             return
         
         if not lesson_data["has_access"]:
-            text = BotTexts.LOCKED_LESSON.format(
-                title=lesson_data['title'],
-                description=lesson_data['description']
-            )
-            # Get price information for the contact message
+            # Create admin contact link with user details and lesson info
+            user_name = get_user_display_name(user)
             lesson_price = ""
             if lesson_data.get("price"):
                 lesson_price = f"{lesson_data['price']:,} so'm"
+            
+            # Create pre-filled message with user and lesson details
+            message = f"Salom! Men {user_name} (ID: {user.id}). '{lesson_data['title']}' darsini sotib olishni xohlayman."
+            if lesson_price:
+                message += f" Narxi: {lesson_price}."
+            message += " Iltimos, to'lov va kirish haqida ma'lumot bering."
+            
+            # URL encode the message
+            import urllib.parse
+            encoded_message = urllib.parse.quote(message)
+            admin_contact = f"[Administrator]({f'https://t.me/Ekolingvist1?text={encoded_message}'})"
+            
+            text = BotTexts.LOCKED_LESSON.format(
+                title=lesson_data['title'],
+                description=lesson_data['description'],
+                admin_contact=admin_contact
+            )
             
             keyboard = get_locked_lesson_keyboard(lesson_data['title'], lesson_price)
         else:
