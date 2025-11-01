@@ -23,7 +23,7 @@ class UserRegistration(BaseModel):
     phone_number: str
 
 class TestAnswer(BaseModel):
-    question_id: int
+    question_id: str  # Changed to str to handle UUID
     selected_option: int
 
 class TestSubmission(BaseModel):
@@ -247,7 +247,7 @@ async def submit_test(telegram_id: int, lesson_id: str, submission: TestSubmissi
         
         # Get questions
         questions = db.query(TestQuestionDB).filter(TestQuestionDB.lesson_id == lesson.id).all()
-        question_dict = {q.id: q for q in questions}
+        question_dict = {str(q.id): q for q in questions}  # Convert question IDs to strings
         
         # Calculate score
         correct_answers = 0
