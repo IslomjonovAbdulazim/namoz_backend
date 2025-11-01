@@ -47,7 +47,7 @@ class BotTexts:
     TAKE_TEST = "❓ Test topshirish"
     VIEW_RESULT = "📊 Natijani ko'rish"
     TEST_ERROR = "❌ Test savollarini yuklashda xatolik."
-    QUESTION_HEADER = "❓ **Savol {current} dan {total}**\n\n{question}\n\n📝 To'g'ri javobni tanlang:"
+    QUESTION_HEADER = "❓ **Savol {current} dan {total}**\n\n{question}\n\n{options}\n\n📝 To'g'ri javobni tanlang:"
     CANCEL_TEST = "❌ Testni bekor qilish"
     
     # Test results

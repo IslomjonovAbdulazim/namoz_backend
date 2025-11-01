@@ -201,10 +201,18 @@ class CallbackHandler:
             return
         
         question = questions[current_idx]
+        
+        # Format options for display in message text
+        options_text = ""
+        for i, option in enumerate(question["options"]):
+            letter = chr(65 + i)  # A, B, C, D
+            options_text += f"{letter}. {option}\n"
+        
         text = BotTexts.QUESTION_HEADER.format(
             current=current_idx + 1,
             total=len(questions),
-            question=question['question_text']
+            question=question['question_text'],
+            options=options_text.strip()
         )
         
         keyboard = get_test_question_keyboard(

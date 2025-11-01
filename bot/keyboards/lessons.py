@@ -64,17 +64,20 @@ def get_test_question_keyboard(question_id: str, options: List[str], lesson_id: 
     """Get keyboard for test question"""
     keyboard = []
     
-    # Add option buttons
+    # Add option buttons in a 2x2 grid layout
+    option_buttons = []
     for i, option in enumerate(options):
         letter = chr(65 + i)  # A, B, C, D
-        # Try to avoid truncation by using a more generous limit
-        # Telegram can handle reasonably long button text
-        button_text = f"{letter}. {option}"
-        
-        keyboard.append([InlineKeyboardButton(
-            button_text, 
+        # Only show the letter - full option text is in the message
+        option_buttons.append(InlineKeyboardButton(
+            letter, 
             callback_data=f"answer_{question_id}_{i}"
-        )])
+        ))
+    
+    # Arrange buttons in rows of 2
+    for i in range(0, len(option_buttons), 2):
+        row = option_buttons[i:i+2]
+        keyboard.append(row)
     
     # Cancel test button
     keyboard.append([InlineKeyboardButton(BotTexts.CANCEL_TEST, callback_data=f"lesson_{lesson_id}")])
