@@ -9,6 +9,7 @@ from app.models.test_question import TestQuestionDB
 from app.models.access import UserLessonAccessDB
 from pydantic import BaseModel
 import logging
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -122,8 +123,13 @@ async def get_lesson_detail(telegram_id: int, lesson_id: str, db: Session = Depe
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Get lesson
-        lesson = db.query(LessonDB).filter(str(LessonDB.id) == lesson_id).first()
+        # Get lesson by converting string UUID to UUID object
+        try:
+            lesson_uuid = uuid.UUID(lesson_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid lesson ID format")
+        
+        lesson = db.query(LessonDB).filter(LessonDB.id == lesson_uuid).first()
         if not lesson:
             raise HTTPException(status_code=404, detail="Lesson not found")
         
@@ -172,8 +178,13 @@ async def get_lesson_questions(telegram_id: int, lesson_id: str, db: Session = D
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Get lesson first to get the proper lesson ID
-        lesson = db.query(LessonDB).filter(str(LessonDB.id) == lesson_id).first()
+        # Get lesson by converting string UUID to UUID object
+        try:
+            lesson_uuid = uuid.UUID(lesson_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid lesson ID format")
+        
+        lesson = db.query(LessonDB).filter(LessonDB.id == lesson_uuid).first()
         if not lesson:
             raise HTTPException(status_code=404, detail="Lesson not found")
         
@@ -215,8 +226,13 @@ async def submit_test(telegram_id: int, lesson_id: str, submission: TestSubmissi
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Get lesson first to get the proper lesson ID
-        lesson = db.query(LessonDB).filter(str(LessonDB.id) == lesson_id).first()
+        # Get lesson by converting string UUID to UUID object
+        try:
+            lesson_uuid = uuid.UUID(lesson_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid lesson ID format")
+        
+        lesson = db.query(LessonDB).filter(LessonDB.id == lesson_uuid).first()
         if not lesson:
             raise HTTPException(status_code=404, detail="Lesson not found")
         

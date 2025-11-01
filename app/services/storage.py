@@ -54,7 +54,7 @@ class GoogleCloudStorage:
                 status_code=503, 
                 detail="Google Cloud Storage is not configured. Please check your credentials."
             )
-    
+
     def upload_file(self, file: UploadFile, folder: str = "uploads") -> str:
         self._check_client()
         try:
