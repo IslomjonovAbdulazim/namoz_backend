@@ -26,7 +26,7 @@ class CallbackHandler:
         """Safely edit message, handling 'message not modified' errors"""
         try:
             if update.callback_query:
-                await self.safe_edit_message(update,
+                await update.callback_query.edit_message_text(
                     text,
                     reply_markup=reply_markup,
                     parse_mode=parse_mode
