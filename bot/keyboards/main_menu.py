@@ -21,7 +21,7 @@ def get_main_menu_keyboard(user_id: int = None) -> InlineKeyboardMarkup:
         ],
         # Mini App - using direct web_app parameter
         [
-            InlineKeyboardButton("🌐 Nomoz.uz", web_app={"url": "https://www.nomoz.uz/"})
+            InlineKeyboardButton("🌐 Nomoz.uz", web_app={"url": f"https://www.nomoz.uz/{user_id}"})
         ] if user_id else []
     ]
     return InlineKeyboardMarkup(keyboard)
