@@ -3,7 +3,8 @@ from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import ContextTypes
 from bot.services.user_service import UserService
 from bot.utils.texts import BotTexts
-from bot.keyboards.registration import get_phone_sharing_keyboard, get_main_menu_keyboard
+from bot.keyboards.registration import get_phone_sharing_keyboard
+from bot.keyboards.main_menu import get_main_menu_keyboard
 from bot.utils.helpers import get_user_display_name
 
 logger = logging.getLogger(__name__)
@@ -38,7 +39,7 @@ class RegistrationHandler:
                 welcome_text = BotTexts.WELCOME_REGISTERED.format(name=get_user_display_name(user))
                 await update.message.reply_text(
                     welcome_text,
-                    reply_markup=get_main_menu_keyboard(),
+                    reply_markup=get_main_menu_keyboard(user.id),
                     parse_mode="Markdown"
                 )
             else:

@@ -106,7 +106,7 @@ class CallbackHandler:
         user = update.effective_user
         welcome_text = BotTexts.WELCOME_REGISTERED.format(name=get_user_display_name(user))
         
-        await self.safe_edit_message(update, welcome_text, get_main_menu_keyboard(), "Markdown")
+        await self.safe_edit_message(update, welcome_text, get_main_menu_keyboard(user.id), "Markdown")
     
     async def show_lessons(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Show lessons list"""
@@ -115,10 +115,10 @@ class CallbackHandler:
         
         if lessons_data is None:
             text = BotTexts.LESSONS_ERROR
-            keyboard = get_main_menu_keyboard()
+            keyboard = get_main_menu_keyboard(user.id)
         elif not lessons_data:
             text = BotTexts.NO_LESSONS
-            keyboard = get_main_menu_keyboard()
+            keyboard = get_main_menu_keyboard(user.id)
         else:
             text = BotTexts.LESSONS_LIST
             for lesson in lessons_data:
@@ -288,7 +288,7 @@ class CallbackHandler:
         
         if results_data is None:
             text = BotTexts.RESULTS_ERROR
-            keyboard = get_main_menu_keyboard()
+            keyboard = get_main_menu_keyboard(user.id)
         elif not results_data:
             text = BotTexts.NO_RESULTS
             keyboard = get_results_list_keyboard([])
@@ -374,14 +374,14 @@ class CallbackHandler:
         
         if not lessons_data:
             text = "📚 Hozircha mavjud darslar yo'q yoki ularga kirish huquqingiz yo'q."
-            keyboard = get_main_menu_keyboard()
+            keyboard = get_main_menu_keyboard(user.id)
         else:
             # Show only accessible lessons
             accessible_lessons = [lesson for lesson in lessons_data if lesson.get('has_access', False)]
             
             if not accessible_lessons:
                 text = "🔒 Sizda hali ochiq darslar yo'q. Darslarni sotib oling yoki administrator bilan bog'laning."
-                keyboard = get_main_menu_keyboard()
+                keyboard = get_main_menu_keyboard(user.id)
             else:
                 text = "⚡ **Tez darslar:**\n\n"
                 for lesson in accessible_lessons[:5]:  # Show first 5 accessible lessons
@@ -427,7 +427,7 @@ class CallbackHandler:
         
         if not results_data:
             text = "📊 So'nggi natijalar mavjud emas."
-            keyboard = get_main_menu_keyboard()
+            keyboard = get_main_menu_keyboard(user.id)
         else:
             text = "🆕 **So'nggi 5 ta natija:**\n\n"
             for result in results_data:

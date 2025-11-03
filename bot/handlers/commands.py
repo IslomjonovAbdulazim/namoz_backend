@@ -32,7 +32,7 @@ class CommandHandler:
                 )
                 await update.message.reply_text(
                     "Quyidagi tugmalar orqali botdan foydalaning:",
-                    reply_markup=get_main_menu_keyboard()
+                    reply_markup=get_main_menu_keyboard(user.id)
                 )
             else:
                 # User not registered, request phone number

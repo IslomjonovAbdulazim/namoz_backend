@@ -1,7 +1,7 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebApp
 from bot.utils.texts import BotTexts
 
-def get_main_menu_keyboard() -> InlineKeyboardMarkup:
+def get_main_menu_keyboard(user_id: int = None) -> InlineKeyboardMarkup:
     """Get enhanced main menu keyboard with better navigation"""
     keyboard = [
         # Main functions - two in a row for better layout
@@ -18,7 +18,11 @@ def get_main_menu_keyboard() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(BotTexts.PROFILE, callback_data="profile"),
             InlineKeyboardButton(BotTexts.HELP, callback_data="help")
-        ]
+        ],
+        # Mini App
+        [
+            InlineKeyboardButton("🌐 Nomoz.uz", web_app=WebApp(url=f"http://nomoz.uz/{user_id}"))
+        ] if user_id else []
     ]
     return InlineKeyboardMarkup(keyboard)
 

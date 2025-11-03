@@ -13,10 +13,3 @@ def get_phone_sharing_keyboard() -> ReplyKeyboardMarkup:
         input_field_placeholder="Telefon raqamingizni baham ko'ring"
     )
 
-def get_main_menu_keyboard() -> InlineKeyboardMarkup:
-    """Get main menu keyboard after registration"""
-    keyboard = [
-        [InlineKeyboardButton(BotTexts.MY_LESSONS, callback_data="lessons")],
-        [InlineKeyboardButton(BotTexts.MY_RESULTS, callback_data="results")]
-    ]
-    return InlineKeyboardMarkup(keyboard)
