@@ -1,8 +1,4 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-try:
-    from telegram import WebApp
-except ImportError:
-    from telegram.webapps import WebApp
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebApp
 from bot.utils.texts import BotTexts
 
 def get_main_menu_keyboard(user_id: int = None) -> InlineKeyboardMarkup:
