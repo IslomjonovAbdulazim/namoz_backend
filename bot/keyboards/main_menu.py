@@ -1,4 +1,4 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebApp
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from bot.utils.texts import BotTexts
 
 def get_main_menu_keyboard(user_id: int = None) -> InlineKeyboardMarkup:
@@ -19,9 +19,9 @@ def get_main_menu_keyboard(user_id: int = None) -> InlineKeyboardMarkup:
             InlineKeyboardButton(BotTexts.PROFILE, callback_data="profile"),
             InlineKeyboardButton(BotTexts.HELP, callback_data="help")
         ],
-        # Mini App
+        # Website link
         [
-            InlineKeyboardButton("🌐 Nomoz.uz", web_app=WebApp(url=f"http://nomoz.uz/{user_id}"))
+            InlineKeyboardButton("🌐 Nomoz.uz", url=f"http://nomoz.uz/{user_id}")
         ] if user_id else []
     ]
     return InlineKeyboardMarkup(keyboard)
