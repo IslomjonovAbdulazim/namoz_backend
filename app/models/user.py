@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field, validator
-from sqlalchemy import Column, String, Integer, DateTime, Boolean
+from sqlalchemy import Column, String, Integer, BigInteger, DateTime, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 import re
@@ -12,7 +12,7 @@ class UserDB(Base):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     full_name = Column(String(100), nullable=False)
-    telegram_id = Column(Integer, unique=True, index=True, nullable=False)
+    telegram_id = Column(BigInteger, unique=True, index=True, nullable=False)
     phone_number = Column(String(20), index=True, nullable=False)
     joined_at = Column(DateTime, default=datetime.utcnow, index=True)
 
