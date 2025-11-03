@@ -302,7 +302,7 @@ async def submit_test(telegram_id: int, lesson_id: str, submission: TestSubmissi
         raise HTTPException(status_code=500, detail="Failed to submit test")
 
 @router.get("/user/{telegram_id}/result/{result_id}")
-async def get_result_detail(telegram_id: int, result_id: int, db: Session = Depends(get_db)):
+async def get_result_detail(telegram_id: int, result_id: str, db: Session = Depends(get_db)):
     """Get detailed test result"""
     try:
         # Get user
@@ -310,9 +310,15 @@ async def get_result_detail(telegram_id: int, result_id: int, db: Session = Depe
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
+        # Convert result_id to UUID
+        try:
+            result_uuid = uuid.UUID(result_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid result ID format")
+        
         # Get result
         result = db.query(UserTestResultDB, LessonDB).join(LessonDB).filter(
-            UserTestResultDB.id == result_id,
+            UserTestResultDB.id == result_uuid,
             UserTestResultDB.user_id == user.id
         ).first()
         

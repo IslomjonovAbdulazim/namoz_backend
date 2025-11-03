@@ -206,7 +206,7 @@ Get user's test results history.
 ### Get Result Details
 Get detailed information about a specific test result.
 
-**Endpoint:** `GET /user/{telegram_id}/result/{result_id}`
+**Endpoint:** `GET /bot/user/{telegram_id}/result/{result_id}`
 
 **Parameters:**
 - `telegram_id` (int): User's Telegram ID
@@ -215,13 +215,39 @@ Get detailed information about a specific test result.
 **Response:**
 ```json
 {
-  "lesson_title": "1-Dars",
-  "score": 80,
-  "correct_answers": 12,
-  "total_questions": 15,
-  "completed_at": "2025-11-01T07:30:00Z",
-  "answers": []
-}
+    "lesson_title": "1-Dars",
+    "score": 80,
+    "correct_answers": 12,
+    "total_questions": 15,
+    "completed_at": "2025-11-01T07:30:00Z",
+    "answers": [
+      {
+        "question_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "question_text": "O'zbek tilida nechta unli harf bor?",
+        "options": ["4 ta", "5 ta", "6 ta", "7 ta"],
+        "selected_option": 2,
+        "correct_option": 2,
+        "is_correct": true
+      },
+      {
+        "question_id": "b2c3d4e5-f6g7-8901-bcde-f12345678901",
+        "question_text": "Fonetika nima?",
+        "options": ["Tovush tizimi", "So'z yasalishi", "Gap tuzilishi", "Ma'no o'rganish"],
+        "selected_option": 0,
+        "correct_option": 0,
+        "is_correct": true
+      },
+      {
+        "question_id": "c3d4e5f6-g7h8-9012-cdef-123456789012",
+        "question_text": "Undosh tovushlar nechta?",
+        "options": ["20 ta", "21 ta", "22 ta", "23 ta"],
+        "selected_option": 1,
+        "correct_option": 2,
+        "is_correct": false
+      }
+    ]
+  }
+
 ```
 
 ### Get User Statistics
