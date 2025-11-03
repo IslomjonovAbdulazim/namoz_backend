@@ -249,14 +249,28 @@ async def submit_test(telegram_id: int, lesson_id: str, submission: TestSubmissi
         questions = db.query(TestQuestionDB).filter(TestQuestionDB.lesson_id == lesson.id).all()
         question_dict = {str(q.id): q for q in questions}  # Convert question IDs to strings
         
-        # Calculate score
+        # Calculate score and prepare detailed answers
         correct_answers = 0
         total_questions = len(questions)
+        detailed_answers = []
         
         for answer in submission.answers:
             question = question_dict.get(answer.question_id)
-            if question and question.correct_option == answer.selected_option:
-                correct_answers += 1
+            if question:
+                is_correct = question.correct_option == answer.selected_option
+                if is_correct:
+                    correct_answers += 1
+                
+                # Store detailed answer information
+                detailed_answer = {
+                    "question_id": answer.question_id,
+                    "question_text": question.question_text,
+                    "options": question.options,
+                    "selected_option": answer.selected_option,
+                    "correct_option": question.correct_option,
+                    "is_correct": is_correct
+                }
+                detailed_answers.append(detailed_answer)
         
         score = round((correct_answers / total_questions) * 100) if total_questions > 0 else 0
         passed = score >= 70  # 70% passing score
@@ -276,7 +290,7 @@ async def submit_test(telegram_id: int, lesson_id: str, submission: TestSubmissi
             lesson_id=lesson.id,
             score=score,
             total_questions=total_questions,
-            answers=[],  # Store as empty list for now, could be enhanced later
+            answers=detailed_answers,  # Store detailed answers
             ended_at=datetime.utcnow()
         )
         
@@ -333,7 +347,7 @@ async def get_result_detail(telegram_id: int, result_id: str, db: Session = Depe
             "correct_answers": round((test_result.score * test_result.total_questions) / 100),  # Calculate from score
             "total_questions": test_result.total_questions,
             "completed_at": test_result.ended_at.isoformat() if test_result.ended_at else "Unknown",
-            "answers": []  # Would contain individual answers if stored
+            "answers": test_result.answers  # Return stored detailed answers
         }
         
     except HTTPException:
