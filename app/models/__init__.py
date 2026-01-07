@@ -3,7 +3,7 @@ from .lesson import LessonDB, Lesson
 from .test_question import TestQuestionDB, TestQuestion
 from .test_result import UserTestResultDB, UserTestResult, UserAnswer
 from .access import UserLessonAccessDB, UserLessonAccess
-from .article import ArticleDB, Article, CategoryDB, Category
+from .article import ArticleDB, Article, CategoryDB, Category, CategoryCreate, CategoryUpdate
 
 __all__ = [
     "UserDB", "User",
