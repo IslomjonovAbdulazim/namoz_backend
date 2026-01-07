@@ -91,22 +91,87 @@ Response:
 
 ### Admin Endpoints
 
+> [!IMPORTANT]
+> All admin endpoints require `Authorization: Bearer <token>` header.
+
+**POST /admin/categories**
+Create a new category.
+```json
+Request:
+{
+  "name": "Guides",          // Required, 1-100 chars
+  "slug": "guides",          // Required, 1-100 chars, Unique
+  "description": "Tutorials" // Optional
+}
+
+Response (200 OK):
+{
+  "name": "Guides",
+  "slug": "guides",
+  "description": "Tutorials",
+  "id": "uuid-string"
+}
+```
+
+**PUT /admin/categories/{id}**
+Update category.
+```json
+Request:
+{
+  "name": "Updated Name",
+  "slug": "updated-slug"
+}
+```
+
+**DELETE /admin/categories/{id}**
+Delete category (only if it has no articles).
+
 **POST /admin/articles**
 Create a new article.
 ```json
 Request:
 {
+  "title": "New Update",              // Required, 1-255 chars
+  "slug": "new-update-2024",          // Required, 1-255 chars, Unique
+  "content": "# Markdown Content...", // Required, string
+  "category_id": "uuid-string",       // Required, valid Category UUID
+  
+  // Optional Fields
+  "excerpt": "Short summary",         // Optional, used for previews
+  "cover_image": "https://...",       // Optional URL (from upload endpoint)
+  "is_published": true,               // Optional, default: false
+  "tags": ["update", "news"]          // Optional array of strings, default: []
+}
+
+Response (200 OK):
+{
+  "id": "uuid-string",
   "title": "New Update",
-  "content": "# Long markdown text...",
+  "slug": "new-update-2024",
+  "content": "# Markdown Content...",
   "excerpt": "Short summary",
-  "category_id": "uuid",
+  "cover_image": "https://...",
+  "category_id": "uuid-string",
+  "tags": ["update", "news"],
   "is_published": true,
-  "tags": ["update", "news"]
+  "published_at": "2024-01-07T12:00:00Z",
+  "view_count": 0,
+  "importance_score": 0,
+  "created_at": "2024-01-07T12:00:00Z",
+  "updated_at": "2024-01-07T12:00:00Z",
+  "category": null
 }
 ```
 
 **PUT /admin/articles/{id}**
-Update content, status, or metadata.
+Update article. Send only fields you want to change.
+```json
+Request:
+{
+  "title": "Updated Title",
+  "is_published": false
+}
+```
 
 **POST /admin/articles/calculate-importance**
 Trigger a recalculation of importance scores for all articles.

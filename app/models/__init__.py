@@ -11,5 +11,5 @@ __all__ = [
     "TestQuestionDB", "TestQuestion",
     "UserTestResultDB", "UserTestResult", "UserAnswer",
     "UserLessonAccessDB", "UserLessonAccess",
-    "ArticleDB", "Article", "CategoryDB", "Category"
+    "ArticleDB", "Article", "CategoryDB", "Category", "CategoryCreate", "CategoryUpdate"
 ]

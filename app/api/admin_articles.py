@@ -8,7 +8,7 @@ import uuid
 
 from app.core.database import get_db
 from app.core.auth import verify_token
-from app.models.article import ArticleDB, Article, ArticleCreate, ArticleUpdate, CategoryDB, Category, CategoryCreate
+from app.models.article import ArticleDB, Article, ArticleCreate, ArticleUpdate, CategoryDB, Category, CategoryCreate, CategoryUpdate
 
 router = APIRouter(prefix="/admin", tags=["admin-articles"])
 
@@ -37,6 +37,51 @@ async def get_all_categories(
     _: dict = Depends(verify_token)
 ):
     return db.query(CategoryDB).all()
+
+@router.put("/categories/{category_id}", response_model=Category)
+async def update_category(
+    category_id: uuid.UUID,
+    category_data: CategoryUpdate,
+    db: Session = Depends(get_db),
+    _: dict = Depends(verify_token)
+):
+    category = db.query(CategoryDB).filter(CategoryDB.id == category_id).first()
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+        
+    update_data = category_data.dict(exclude_unset=True)
+    
+    # Check slug uniqueness if updating slug
+    if "slug" in update_data and update_data["slug"] != category.slug:
+        existing = db.query(CategoryDB).filter(CategoryDB.slug == update_data["slug"]).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Category slug already exists")
+            
+    for field, value in update_data.items():
+        setattr(category, field, value)
+        
+    db.commit()
+    db.refresh(category)
+    return category
+
+@router.delete("/categories/{category_id}")
+async def delete_category(
+    category_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    _: dict = Depends(verify_token)
+):
+    category = db.query(CategoryDB).filter(CategoryDB.id == category_id).first()
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+        
+    # Check if there are related articles
+    articles_count = db.query(ArticleDB).filter(ArticleDB.category_id == category_id).count()
+    if articles_count > 0:
+        raise HTTPException(status_code=400, detail="Cannot delete category with existing articles")
+        
+    db.delete(category)
+    db.commit()
+    return {"message": "Category deleted successfully"}
 
 # --- Articles ---
 
