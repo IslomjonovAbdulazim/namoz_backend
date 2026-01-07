@@ -163,6 +163,9 @@ Response (200 OK):
 }
 ```
 
+**GET /admin/articles/{id}**
+Get a single article by ID for editing.
+
 **PUT /admin/articles/{id}**
 Update article. Send only fields you want to change.
 ```json

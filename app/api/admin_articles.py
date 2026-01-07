@@ -171,6 +171,17 @@ async def create_article(
     db.refresh(article)
     return article
 
+@router.get("/articles/{article_id}", response_model=Article)
+async def get_article(
+    article_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    _: dict = Depends(verify_token)
+):
+    article = db.query(ArticleDB).filter(ArticleDB.id == article_id).first()
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return article
+
 @router.put("/articles/{article_id}", response_model=Article)
 async def update_article(
     article_id: uuid.UUID,
