@@ -117,8 +117,26 @@ async def get_all_articles(
     offset = (page - 1) * limit
     articles = query.offset(offset).limit(limit).all()
     
+    # Convert to dict format
+    articles_data = []
+    for article in articles:
+        articles_data.append({
+            "id": str(article.id),
+            "title": article.title,
+            "slug": article.slug,
+            "excerpt": article.excerpt,
+            "cover_image": article.cover_image,
+            "category_id": str(article.category_id) if article.category_id else None,
+            "is_published": article.is_published,
+            "published_at": article.published_at,
+            "view_count": article.view_count,
+            "importance_score": article.importance_score,
+            "created_at": article.created_at,
+            "updated_at": article.updated_at
+        })
+    
     return {
-        "data": articles,
+        "data": articles_data,
         "meta": {
             "total": total,
             "page": page,
