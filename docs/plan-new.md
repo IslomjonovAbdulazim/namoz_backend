@@ -113,6 +113,17 @@ Trigger a recalculation of importance scores for all articles.
 - Logic: `score = (log(view_count) * 10) + (1 / days_since_published * 100)`
 - Can be run periodically via cron or manually triggered.
 
+**POST /admin/articles/upload/image**
+Upload article images (cover or content).
+- Max size: 500KB
+- Allowed types: JPEG, PNG, WEBP
+```json
+Response:
+{
+  "url": "https://storage.googleapis.com/..."
+}
+```
+
 **GET /admin/articles/stats**
 Get analytics about article performance.
 ```json

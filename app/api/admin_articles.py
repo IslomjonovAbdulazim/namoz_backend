@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, text
 from typing import List, Optional
 from datetime import datetime
 import math
@@ -10,7 +10,7 @@ from app.core.database import get_db
 from app.core.auth import verify_token
 from app.models.article import ArticleDB, Article, ArticleCreate, ArticleUpdate, CategoryDB, Category, CategoryCreate
 
-router = APIRouter(prefix="/admin/articles", tags=["admin-articles"])
+router = APIRouter(prefix="/admin", tags=["admin-articles"])
 
 # --- Categories ---
 
@@ -40,7 +40,49 @@ async def get_all_categories(
 
 # --- Articles ---
 
-@router.post("", response_model=Article)
+@router.get("/articles", response_model=dict)
+async def get_all_articles(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=50),
+    search: Optional[str] = None,
+    category: Optional[str] = None,
+    db: Session = Depends(get_db),
+    _: dict = Depends(verify_token)
+):
+    """
+    Get all articles (including unpublished) for admin table
+    """
+    query = db.query(ArticleDB)
+    
+    if category:
+        query = query.join(CategoryDB).filter(CategoryDB.slug == category)
+        
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (ArticleDB.title.ilike(search_term)) | 
+            (ArticleDB.content.ilike(search_term))
+        )
+        
+    # Default sort by created_at desc
+    query = query.order_by(desc(ArticleDB.created_at))
+    
+    # Pagination
+    total = query.count()
+    offset = (page - 1) * limit
+    articles = query.offset(offset).limit(limit).all()
+    
+    return {
+        "data": articles,
+        "meta": {
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "pages": (total + limit - 1) // limit
+        }
+    }
+
+@router.post("/articles", response_model=Article)
 async def create_article(
     article_data: ArticleCreate,
     db: Session = Depends(get_db),
@@ -66,7 +108,7 @@ async def create_article(
     db.refresh(article)
     return article
 
-@router.put("/{article_id}", response_model=Article)
+@router.put("/articles/{article_id}", response_model=Article)
 async def update_article(
     article_id: uuid.UUID,
     article_data: ArticleUpdate,
@@ -96,7 +138,7 @@ async def update_article(
     db.refresh(article)
     return article
 
-@router.delete("/{article_id}")
+@router.delete("/articles/{article_id}")
 async def delete_article(
     article_id: uuid.UUID,
     db: Session = Depends(get_db),
@@ -112,7 +154,7 @@ async def delete_article(
 
 # --- Importance Calculation ---
 
-@router.post("/calculate-importance")
+@router.post("/articles/calculate-importance")
 async def calculate_importance(
     db: Session = Depends(get_db),
     _: dict = Depends(verify_token)
@@ -145,7 +187,7 @@ async def calculate_importance(
 
 # --- Stats ---
 
-@router.get("/stats")
+@router.get("/articles/stats")
 async def get_article_stats(
     db: Session = Depends(get_db),
     _: dict = Depends(verify_token)
@@ -171,3 +213,28 @@ async def get_article_stats(
             "views": most_read.view_count
         } if most_read else None
     }
+
+# --- File Upload ---
+
+@router.post("/articles/upload/image")
+async def upload_image(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    _: dict = Depends(verify_token)
+):
+    MAX_FILE_SIZE = 500 * 1024  # 500KB
+    ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
+    
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail="Only JPEG, PNG, or WEBP images are allowed")
+        
+    if file.size > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="File too large (max 500KB)")
+        
+    from app.services.storage import storage_service
+    
+    try:
+        url = storage_service.upload_file(file, "images")
+        return {"url": url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
