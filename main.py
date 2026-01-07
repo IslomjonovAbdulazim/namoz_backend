@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.models import *
 from app.core.database import init_db
 from app.api import admin
+from app.api import admin_articles
+from app.api import articles
 from app.api import bot_simple as bot
 
 app = FastAPI(
@@ -22,6 +24,8 @@ app.add_middleware(
 
 # Include routers
 app.include_router(admin.router)
+app.include_router(admin_articles.router)
+app.include_router(articles.router)
 app.include_router(bot.router)
 
 @app.on_event("startup")
