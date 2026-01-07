@@ -4,20 +4,9 @@ from bot.utils.texts import BotTexts
 def get_main_menu_keyboard(user_id: int = None) -> InlineKeyboardMarkup:
     """Get enhanced main menu keyboard with better navigation"""
     keyboard = [
-        # Main functions - two in a row for better layout
+        # Main functions - simplified
         [
-            InlineKeyboardButton(BotTexts.MY_LESSONS, callback_data="lessons"),
-            InlineKeyboardButton(BotTexts.MY_RESULTS, callback_data="results")
-        ],
-        # Quick actions
-        [
-            InlineKeyboardButton(BotTexts.QUICK_LESSONS, callback_data="quick_lessons"),
-            InlineKeyboardButton(BotTexts.PROGRESS, callback_data="progress")
-        ],
-        # Profile and help
-        [
-            InlineKeyboardButton(BotTexts.PROFILE, callback_data="profile"),
-            InlineKeyboardButton(BotTexts.HELP, callback_data="help")
+            InlineKeyboardButton(BotTexts.MY_LESSONS, callback_data="lessons")
         ],
         # Mini App - using direct web_app parameter
         [
