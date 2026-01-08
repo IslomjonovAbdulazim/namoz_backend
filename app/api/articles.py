@@ -5,11 +5,11 @@ from typing import List, Optional
 import uuid
 
 from app.core.database import get_db
-from app.models.article import ArticleDB, Article, CategoryDB, Category
+from app.models.article import ArticleDB, Article, CategoryDB, Category, ArticleListResponse
 
 router = APIRouter(prefix="/v1/articles", tags=["articles"])
 
-@router.get("", response_model=dict)
+@router.get("", response_model=ArticleListResponse)
 async def get_articles(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=50),

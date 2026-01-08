@@ -100,3 +100,13 @@ class Article(ArticleBase):
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
+
+class ArticlePaginationMeta(BaseModel):
+    total: int
+    page: int
+    limit: int
+    pages: int
+
+class ArticleListResponse(BaseModel):
+    data: List[Article]
+    meta: ArticlePaginationMeta
