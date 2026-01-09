@@ -281,7 +281,7 @@ async def get_article_stats(
         "total_views": total_views,
         "total_articles": total_articles,
         "published_articles": published_articles,
-        "new_this_month": new_this_month,
+        "articles_published_this_month": new_this_month,
         "most_read_article": {
             "title": most_read.title,
             "views": most_read.view_count
