@@ -3,7 +3,7 @@ from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import ContextTypes
 from bot.services.user_service import UserService
 from bot.utils.texts import BotTexts
-from bot.keyboards.main_menu import get_main_menu_keyboard
+from bot.keyboards.main_menu import get_main_menu_keyboard, get_main_menu_reply_keyboard
 from bot.keyboards.registration import get_phone_sharing_keyboard
 from bot.utils.helpers import get_user_display_name
 from bot.handlers.registration import RegistrationHandler
@@ -28,7 +28,7 @@ class CommandHandler:
                 welcome_text = BotTexts.WELCOME_REGISTERED.format(name=get_user_display_name(user))
                 await update.message.reply_text(
                     welcome_text,
-                    reply_markup=ReplyKeyboardRemove()
+                    reply_markup=get_main_menu_reply_keyboard(user.id)
                 )
                 await update.message.reply_text(
                     "Quyidagi tugmalar orqali botdan foydalaning:",

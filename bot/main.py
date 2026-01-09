@@ -87,6 +87,12 @@ class StudentBot:
             MessageHandler(filters.CONTACT, self.registration_handler.handle_contact)
         )
         
+        # Add message handler for menu buttons
+        from bot.utils.texts import BotTexts
+        self.application.add_handler(
+            MessageHandler(filters.Regex(f"^{BotTexts.MY_LESSONS}$"), self.command_handler.lessons_command)
+        )
+        
         logger.info("Bot initialization completed")
     
     async def error_handler(self, update, context):

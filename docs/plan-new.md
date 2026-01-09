@@ -42,7 +42,7 @@ type Category struct {
 
 ### Public Endpoints
 
-**GET /v1/articles**
+**GET /v1/articles** (Implemented)
 - Query Params:
   - `page`, `limit`
   - `category`: Filter by category slug
@@ -76,16 +76,18 @@ Response:
 }
 ```
 
-**GET /v1/articles/{slug}**
+**GET /v1/articles/{slug}** (Implemented)
 - Logic: Fetch article & **increment view count** (async or sync).
+> [!NOTE]
+> `author` and `related_articles` fields are currently missing in the implementation.
 ```json
 Response:
 {
   "id": "uuid",
   "title": "Getting Started with Namoz",
   "content": "# Markdown Content\n\nThis is the detailed content...",
-  "author": { "name": "Admin" },
-  "related_articles": [...]
+  // "author": { "name": "Admin" }, // Missing in code
+  // "related_articles": [...] // Missing in code
 }
 ```
 

@@ -1,4 +1,4 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 from bot.utils.texts import BotTexts
 
 def get_main_menu_keyboard(user_id: int = None) -> InlineKeyboardMarkup:
@@ -14,6 +14,14 @@ def get_main_menu_keyboard(user_id: int = None) -> InlineKeyboardMarkup:
         ] if user_id else []
     ]
     return InlineKeyboardMarkup(keyboard)
+
+def get_main_menu_reply_keyboard(user_id: int = None) -> ReplyKeyboardMarkup:
+    """Get main menu reply keyboard (attached to keyboard)"""
+    keyboard = [
+        [KeyboardButton(BotTexts.MY_LESSONS)],
+        [KeyboardButton("🌐 Nomoz.uz", web_app=WebAppInfo(url=f"https://www.nomoz.uz/{user_id}"))] if user_id else []
+    ]
+    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
 def get_back_to_main_keyboard() -> InlineKeyboardMarkup:
     """Get keyboard with back to main menu button"""
