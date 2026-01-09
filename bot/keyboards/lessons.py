@@ -43,13 +43,18 @@ def get_lesson_materials_keyboard(lesson_data: Dict[str, Any], lesson_id: str) -
     keyboard = []
     
     # Add material buttons with URLs
-    if lesson_data.get("video_url"):
+    # Helper to check for valid URL
+    def is_valid_url(url):
+        return url and str(url).strip().lower().startswith(('http://', 'https://'))
+
+    # Add material buttons with URLs only if they are valid
+    if is_valid_url(lesson_data.get("video_url")):
         keyboard.append([InlineKeyboardButton(BotTexts.VIDEO, url=lesson_data["video_url"])])
     
-    if lesson_data.get("pdf_url"):
+    if is_valid_url(lesson_data.get("pdf_url")):
         keyboard.append([InlineKeyboardButton(BotTexts.PDF, url=lesson_data["pdf_url"])])
     
-    if lesson_data.get("ppt_url"):
+    if is_valid_url(lesson_data.get("ppt_url")):
         keyboard.append([InlineKeyboardButton(BotTexts.PRESENTATION, url=lesson_data["ppt_url"])])
     
     # Test button - always show test option
