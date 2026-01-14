@@ -10,7 +10,7 @@ def get_main_menu_keyboard(user_id: int = None) -> InlineKeyboardMarkup:
         ],
         # Mini App - using direct web_app parameter
         [
-            InlineKeyboardButton("🌐 Nomoz.uz", web_app={"url": f"https://www.nomoz.uz/{user_id}"})
+            InlineKeyboardButton("🌐 Ekolingvist.uz", web_app={"url": f"https://ekolingvist.uz/{user_id}"})
         ] if user_id else []
     ]
     return InlineKeyboardMarkup(keyboard)
@@ -19,7 +19,7 @@ def get_main_menu_reply_keyboard(user_id: int = None) -> ReplyKeyboardMarkup:
     """Get main menu reply keyboard (attached to keyboard)"""
     keyboard = [
         [KeyboardButton(BotTexts.MY_LESSONS)],
-        [KeyboardButton("🌐 Nomoz.uz", web_app=WebAppInfo(url=f"https://www.nomoz.uz/{user_id}"))] if user_id else []
+        [KeyboardButton("🌐 Ekolingvist.uz", web_app=WebAppInfo(url=f"https://ekolingvist.uz/{user_id}"))] if user_id else []
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 

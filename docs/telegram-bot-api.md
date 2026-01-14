@@ -5,7 +5,7 @@ This document describes all API endpoints used by the Telegram bot for the Namoz
 
 ## Base URL
 ```
-https://api.nomoz.uz/bot
+https://api.ekolingvist.uz/bot
 ```
 
 ## Authentication
